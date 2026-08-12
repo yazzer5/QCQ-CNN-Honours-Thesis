@@ -1,0 +1,83 @@
+#!/bin/bash
+#PBS -N v6_fash
+#PBS -P wa66
+#PBS -q gpuvolta
+#PBS -l walltime=01:00:00
+#PBS -l ncpus=12
+#PBS -l ngpus=1
+#PBS -l mem=32GB
+#PBS -l jobfs=10GB
+#PBS -l storage=gdata/wa66
+#PBS -v MODEL=M2,DATASET=fashion_mnist,SEED=42,CLASSES=0,6
+
+# ═══════════════════════════════════════════════════════════════════════
+# FASHION-MNIST GRID — locked protocol, selectable class pair.
+#
+#   5000 / 1250 / 1000, batch 32, AdamW lr 1e-3 wd 1e-4, dropout 0.0,
+#   max_epochs 100, patience 10, min_epochs 30 (M1/M2/M3), qnn_backend torch,
+#   seeds {42..46}, alpha=0.  Same protocol as the MNIST grid.
+#
+# CLASS PAIR (pass CLASSES=a,b):
+#   0,1  T-shirt/top vs Trouser  -- the pair Thesis A specifies.
+#        SATURATED: single-seed check gave M3 99.80%, M4 98.80%. Reproduces
+#        the MNIST null result. Run it for protocol fidelity, not for a
+#        scientific answer.
+#   0,6  T-shirt/top vs Shirt    -- hardest pair. M4 84.20%, ~16 pp headroom.
+#        This is the pair that can actually differentiate architectures.
+#   Others measured with M4 at seed 42: 2,4 -> 88.40 | 4,6 -> 88.60
+#                                       2,6 -> 87.10 | 0,3 -> 95.30
+#
+# NOTE ON STATISTICAL POWER: binomial noise scales with p(1-p), so at ~84%
+# the per-run SE is ~1.16 pp against ~0.28 pp at 99.2%. The minimum
+# detectable effect therefore rises from ~0.25 pp to ~2 pp. The gain is not
+# the full 16 pp of headroom -- it is that effects above ~2 pp become
+# detectable at all, whereas at 99.2% the ceiling made ANY effect impossible.
+#
+# Results land in results_v6_fashion_c<classes>/ so the two pairs never mix.
+# ═══════════════════════════════════════════════════════════════════════
+
+# ═══════════════════════════════════════════════════════════════════════
+
+set -e
+cd "$PBS_O_WORKDIR/.."
+echo "PWD=$(pwd)"
+ls -l train_gadi.py quanv_torch.py qnn_torch.py || { echo "FATAL: repo root not found"; exit 1; }
+
+module load cuda/11.7.0
+source /g/data/wa66/yh2481/miniconda3/etc/profile.d/conda.sh
+conda activate qcqcnn
+export PYTHONPATH=""
+
+echo "=== Job start: $(date) ==="
+echo "MODEL=$MODEL DATASET=$DATASET SEED=$SEED CLASSES=$CLASSES (FULL PROTOCOL)"
+nvidia-smi --query-gpu=name,memory.total --format=csv
+
+nvidia-smi --query-gpu=timestamp,utilization.gpu,memory.used \
+    --format=csv -l 2 > gpu_util_v6f_${MODEL}_${DATASET}_s${SEED}.csv &
+NVSMI_PID=$!
+
+set +e
+python train_gadi.py \
+    --model "$MODEL" \
+    --dataset "$DATASET" \
+    --classes "$CLASSES" \
+    --seed "$SEED" \
+    --noise_alpha 0.0 \
+    --output_dir ./results_v6_fashion_c${CLASSES//,/} \
+    --data_root ./data \
+    --checkpoint_dir ./ckpt_v6_fashion_c${CLASSES//,/} \
+    --time_budget_hours 0.85
+RC=$?
+set -e
+
+kill $NVSMI_PID 2>/dev/null || true
+
+if [ $RC -eq 99 ]; then
+    echo "Time budget reached -- submitting continuation link."
+    cd "$PBS_O_WORKDIR"
+    qsub -v MODEL=$MODEL,DATASET=$DATASET,SEED=$SEED run6_full_grid.pbs
+    exit 0
+fi
+
+echo "=== Job end: $(date) rc=$RC ==="
+exit $RC

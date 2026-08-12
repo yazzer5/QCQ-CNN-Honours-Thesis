@@ -1,0 +1,80 @@
+#!/bin/bash
+#PBS -N v6_grid
+#PBS -P wa66
+#PBS -q gpuvolta
+#PBS -l walltime=01:00:00
+#PBS -l ncpus=12
+#PBS -l ngpus=1
+#PBS -l mem=32GB
+#PBS -l jobfs=10GB
+#PBS -l storage=gdata/wa66
+#PBS -v MODEL=M2,DATASET=mnist,SEED=42
+
+# ═══════════════════════════════════════════════════════════════════════
+# FULL MNIST 3-vs-5 GRID — LOCKED PROTOCOL. These are the real results.
+#
+#   5000 / 1250 / 1000  train/val/test      (Long et al.)
+#   batch size 32       uniform, all four models
+#   lr 1e-3, AdamW, weight_decay 1e-4
+#   dropout 0.0
+#   max_epochs 100, patience 10
+#   min_epochs 30       for models with a trainable quantum front-end OR
+#                       a QNN back-end (M1, M2, M3)
+#   qnn_backend torch   exact, verified vs EstimatorQNN to ~1e-6
+#   seeds {42,43,44,45,46}
+#
+# NO --n_train / --max_epochs / --patience / --dropout / --weight_decay
+# OVERRIDES. Any override makes train_gadi.py print a REDUCED-SCALE
+# warning and tag the result JSON, and those runs must not be mixed with
+# these. If you find yourself wanting to add one, make a separate PBS file.
+#
+# WALLTIME: measured 2.5 s/epoch for M2 at n=3000, so ~4.2 s/epoch at
+# n=5000 -> ~7 min for a full 100 epochs. M1 ~4.5 min, M3 ~4 min, M4 <2
+# min. 1h is ~6x margin and keeps the gpuvolta queue short (gpuvolta is
+# NOT bonus-time eligible, so shorter walltime = faster scheduling).
+#
+# Self-chains on exit code 99 if the internal time budget is somehow hit.
+# ═══════════════════════════════════════════════════════════════════════
+
+set -e
+cd "$PBS_O_WORKDIR/.."
+echo "PWD=$(pwd)"
+ls -l train_gadi.py quanv_torch.py qnn_torch.py || { echo "FATAL: repo root not found"; exit 1; }
+
+module load cuda/11.7.0
+source /g/data/wa66/yh2481/miniconda3/etc/profile.d/conda.sh
+conda activate qcqcnn
+export PYTHONPATH=""
+
+echo "=== Job start: $(date) ==="
+echo "MODEL=$MODEL DATASET=$DATASET SEED=$SEED (FULL PROTOCOL)"
+nvidia-smi --query-gpu=name,memory.total --format=csv
+
+nvidia-smi --query-gpu=timestamp,utilization.gpu,memory.used \
+    --format=csv -l 2 > gpu_util_v6_${MODEL}_${DATASET}_s${SEED}.csv &
+NVSMI_PID=$!
+
+set +e
+python train_gadi.py \
+    --model "$MODEL" \
+    --dataset "$DATASET" \
+    --seed "$SEED" \
+    --noise_alpha 0.0 \
+    --output_dir ./results_v6_mnist \
+    --data_root ./data \
+    --checkpoint_dir ./ckpt_v6_mnist \
+    --time_budget_hours 0.85
+RC=$?
+set -e
+
+kill $NVSMI_PID 2>/dev/null || true
+
+if [ $RC -eq 99 ]; then
+    echo "Time budget reached -- submitting continuation link."
+    cd "$PBS_O_WORKDIR"
+    qsub -v MODEL=$MODEL,DATASET=$DATASET,SEED=$SEED run6_full_grid.pbs
+    exit 0
+fi
+
+echo "=== Job end: $(date) rc=$RC ==="
+exit $RC

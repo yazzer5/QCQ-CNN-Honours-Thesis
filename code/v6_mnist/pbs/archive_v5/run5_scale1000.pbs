@@ -1,0 +1,78 @@
+#!/bin/bash
+#PBS -N v5_s1000
+#PBS -P wa66
+#PBS -q gpuvolta
+#PBS -l walltime=01:00:00
+#PBS -l ncpus=12
+#PBS -l ngpus=1
+#PBS -l mem=32GB
+#PBS -l jobfs=10GB
+#PBS -l storage=gdata/wa66
+#PBS -v MODEL=M2,DATASET=mnist,SEED=42,DROPOUT=0.0
+
+# ═══════════════════════════════════════════════════════════════════════
+# SCALE-1000 RUN — 1000/250/200, seed 42, all four models.
+#
+# Intermediate step between the 500-scale smoke test and the locked full
+# protocol (5000/1250/1000). Same 4:1:0.8 split ratio as the full protocol,
+# so nothing structural changes -- only the sample count.
+#
+# SCHEDULE PARAMETERS, and why they are what they are:
+#   The quantum back-end's plateau is measured in OPTIMISER UPDATES, not
+#   epochs. Observed: at n=500 (15 steps/epoch at bs=32) the plateau broke
+#   around epoch 11-13, i.e. ~165-195 updates. At n=1000 there are 31
+#   steps/epoch, so the same plateau should clear around epoch 6.
+#     --min_epochs_quantum 15   ~2.5x safety margin over the predicted
+#                               epoch-6 plateau exit
+#     --patience 10             unchanged from the locked protocol
+#     --max_epochs 60           M2 converged by epoch ~22-31 at n=500; at
+#                               2x steps/epoch expect ~15-20 here, so 60 is
+#                               generous headroom
+#   dropout 0.0 (locked default, see MODELS_SOURCE_OF_TRUTH.md Sec 6)
+#   batch size 32 (locked, uniform across all four models)
+#
+# WALLTIME: M1/M2 ran ~8.5s/epoch at n=500; expect ~17s/epoch here, so
+# ~17 min for 60 epochs. M3/M4 are sub-second per epoch. 1h is ample.
+#
+# This is STILL a reduced-scale run -- train_gadi.py tags it REDUCED-SCALE
+# in the result JSON. Do not mix with full-protocol results.
+# ═══════════════════════════════════════════════════════════════════════
+
+# ═══════════════════════════════════════════════════════════════════════
+
+set -e
+cd "$PBS_O_WORKDIR/.."
+echo "PWD=$(pwd)"
+ls -l train_gadi.py quanv_torch.py || { echo "FATAL: repo root not found"; exit 1; }
+
+module load cuda/11.7.0
+source /g/data/wa66/yh2481/miniconda3/etc/profile.d/conda.sh
+conda activate qcqcnn
+export PYTHONPATH=""
+
+echo "=== Job start: $(date) ==="
+echo "MODEL=$MODEL DATASET=$DATASET SEED=$SEED DROPOUT=${DROPOUT:-0.0} (SCALE-1000)"
+nvidia-smi --query-gpu=name,memory.total --format=csv
+
+nvidia-smi --query-gpu=timestamp,utilization.gpu,memory.used \
+    --format=csv -l 2 > gpu_util_v5s1000_${MODEL}_${DATASET}_s${SEED}_d${DROPOUT:-0.0}.csv &
+NVSMI_PID=$!
+
+python train_gadi.py \
+    --model "$MODEL" \
+    --dataset "$DATASET" \
+    --seed "$SEED" \
+    --noise_alpha 0.0 \
+    --output_dir ./results_v5_scale1000 \
+    --data_root ./data \
+    --n_train 1000 --n_val 250 --n_test 200 \
+    --max_epochs 60 \
+    --min_epochs_quantum 15 \
+    --patience 10 \
+    --dropout "${DROPOUT:-0.0}"
+
+kill $NVSMI_PID 2>/dev/null || true
+echo "=== Job end: $(date) ==="
+echo "Peak GPU util:"
+awk -F, 'NR>1{gsub(/[^0-9]/,"",$2); if($2+0>m) m=$2+0} END{print m"%"}' \
+    gpu_util_v5s1000_${MODEL}_${DATASET}_s${SEED}_d${DROPOUT:-0.0}.csv

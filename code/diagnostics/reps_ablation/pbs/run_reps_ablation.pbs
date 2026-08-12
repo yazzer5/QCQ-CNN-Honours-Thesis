@@ -1,0 +1,48 @@
+#!/bin/bash
+#PBS -P wa66
+#PBS -q gpuvolta
+#PBS -l ncpus=12
+#PBS -l ngpus=1
+#PBS -l mem=32GB
+#PBS -l jobfs=10GB
+#PBS -l walltime=01:00:00
+#PBS -l storage=gdata/wa66
+#PBS -l wd
+#PBS -N reps_abl
+#PBS -j oe
+#PBS -v MODEL=M1,DATASET=fashion_mnist,SEED=42,CLASSPAIR=0_6,REPS=2
+
+set -e
+
+# PBS -v is a COMMA-separated list, so the class pair travels as CLASSPAIR=0_6
+# and is expanded here. (v6 passed CLASSES=0,6 and silently lost the pair.)
+CLASSES="${CLASSPAIR//_/,}"
+CTAG="${CLASSPAIR//_/}"
+
+echo "=== Job start: $(date) ==="
+echo "MODEL=$MODEL DATASET=$DATASET SEED=$SEED CLASSES=$CLASSES REPS=$REPS (FULL PROTOCOL)"
+
+source /g/data/wa66/yh2481/miniconda3/etc/profile.d/conda.sh
+conda activate qcqcnn
+export PYTHONPATH=""
+
+python scripts/preflight_data.py --data_root ./data --classes "$CLASSES" \
+    || { echo "FATAL: data preflight failed -- not training"; exit 1; }
+
+nvidia-smi --query-gpu=name,memory.total --format=csv || true
+
+OUT="./results_reps_${DATASET}_c${CTAG}"
+
+python train_gadi.py \
+    --model "$MODEL" \
+    --dataset "$DATASET" \
+    --seed "$SEED" \
+    --classes "$CLASSES" \
+    --be_reps "$REPS" \
+    --noise_alpha 0.0 \
+    --output_dir "$OUT" \
+    --data_root ./data
+
+RC=$?
+echo "=== Job end: $(date) rc=$RC ==="
+exit $RC

@@ -1,0 +1,76 @@
+#!/bin/bash
+#PBS -N v5_smoke
+#PBS -P wa66
+#PBS -q gpuvolta
+#PBS -l walltime=00:30:00
+#PBS -l ncpus=12
+#PBS -l ngpus=1
+#PBS -l mem=32GB
+#PBS -l jobfs=10GB
+#PBS -l storage=gdata/wa66
+#PBS -v MODEL=M2,DATASET=mnist,SEED=42,DROPOUT=0.0
+
+# ═══════════════════════════════════════════════════════════════════════
+# SMOKE-SCALE RUN — 500/125/100 (same ratio as the locked 5000/1250/1000
+# protocol, 1/10th scale), single seed, 40 max epochs.
+#
+# PURPOSE ONLY: confirm the v5 torch-native pipeline actually works end to
+# end on real Gadi hardware -- GPU gets used, [GRADCHECK] passes, accuracy
+# moves off ~50%, and get a REAL per-epoch timing number -- before
+# committing to the 20-job full grid. NOT a result. train_gadi.py tags
+# this REDUCED-SCALE in the output JSON automatically; do not report these
+# numbers as the MNIST comparison.
+#
+# WARMUP (2026-07-28, revised): min_epochs_quantum=15, patience=10. Was
+# 8/8 -- too tight. Long et al.'s own preliminary work documents a
+# frozen-front-end + trainable-QNN-back-end model (= M1's architecture)
+# staying near chance level for "roughly 10-15 epochs" before it starts
+# moving (thesis draft Sec 4.3.2). The smoke-scale run 2026-07-28 showed
+# M2 with real weight movement and real (collapsing) output variation
+# every epoch -- consistent with mid-plateau, not stuck -- but 8/8 stopped
+# it before it could exit. Also: the warmup condition itself was fixed to
+# cover M1 (trainable QNN back-end), not just M2/M3 (trainable front-end)
+# -- see train_gadi.py's train_model() and MODELS_SOURCE_OF_TRUTH.md Sec 9.
+#
+# 30 min walltime is generous slack -- M1/M2 measured ~8-9s/epoch at this
+# scale in the prior smoke run, so 40 epochs is ~5-6 min/model plus
+# overhead. If it runs anywhere close to the cap, something is wrong --
+# check the .o file before assuming it's just slow.
+# ═══════════════════════════════════════════════════════════════════════
+
+set -e
+cd "$PBS_O_WORKDIR/.."
+echo "PWD=$(pwd)"
+ls -l train_gadi.py quanv_torch.py || { echo "FATAL: repo root not found"; exit 1; }
+
+module load cuda/11.7.0
+source /g/data/wa66/yh2481/miniconda3/etc/profile.d/conda.sh
+conda activate qcqcnn
+export PYTHONPATH=""
+
+echo "=== Job start: $(date) ==="
+echo "MODEL=$MODEL DATASET=$DATASET SEED=$SEED DROPOUT=${DROPOUT:-0.0} (SMOKE SCALE)"
+nvidia-smi --query-gpu=name,memory.total --format=csv
+
+nvidia-smi --query-gpu=timestamp,utilization.gpu,memory.used \
+    --format=csv -l 2 > gpu_util_v5smoke_${MODEL}_${DATASET}_s${SEED}_d${DROPOUT:-0.0}.csv &
+NVSMI_PID=$!
+
+python train_gadi.py \
+    --model "$MODEL" \
+    --dataset "$DATASET" \
+    --seed "$SEED" \
+    --noise_alpha 0.0 \
+    --output_dir ./results_v5_smoke/drop${DROPOUT:-0.0} \
+    --data_root ./data \
+    --n_train 500 --n_val 125 --n_test 100 \
+    --max_epochs 60 \
+    --min_epochs_quantum 15 \
+    --patience 10 \
+    --dropout "${DROPOUT:-0.0}"
+
+kill $NVSMI_PID 2>/dev/null || true
+echo "=== Job end: $(date) ==="
+echo "Peak GPU util:"
+awk -F, 'NR>1{gsub(/[^0-9]/,"",$2); if($2+0>m) m=$2+0} END{print m"%"}' \
+    gpu_util_v5smoke_${MODEL}_${DATASET}_s${SEED}_d${DROPOUT:-0.0}.csv

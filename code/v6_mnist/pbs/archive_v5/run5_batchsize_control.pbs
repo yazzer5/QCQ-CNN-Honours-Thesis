@@ -1,0 +1,53 @@
+#!/bin/bash
+#PBS -N v5_bscontrol
+#PBS -P wa66
+#PBS -q gpuvolta
+#PBS -l walltime=10:00:00
+#PBS -l ncpus=12
+#PBS -l ngpus=1
+#PBS -l mem=32GB
+#PBS -l jobfs=10GB
+#PBS -l storage=gdata/wa66
+#PBS -v BS=32,MODEL=M2,DATASET=mnist,SEED=42
+
+# ═══════════════════════════════════════════════════════════════════════
+# STEP 2 OF 3 — BATCH-SIZE CONTROL RUN.  Run this BEFORE the grid.
+#
+# The v5 protocol change is bs=1 -> bs=32 for M1-M3. This run is the
+# evidence that the change is benign: same model, same seed, same data,
+# only the batch size differs. Compare final test accuracy and the loss
+# curve between the BS=1 and BS=32 arms.
+#
+# Submit BOTH arms via submit_run5_control.sh. The BS=1 arm is ~32x more
+# optimiser steps per epoch and needs the longer walltime -- that is the
+# whole reason the change is worth making.
+#
+# Results land in results_v5_control/ with distinct filenames per arm.
+# ═══════════════════════════════════════════════════════════════════════
+
+set -e
+cd "$PBS_O_WORKDIR/.."
+echo "PWD=$(pwd)"
+ls -l train_gadi.py quanv_torch.py || { echo "FATAL: repo root not found"; exit 1; }
+
+module load cuda/11.7.0
+source /g/data/wa66/yh2481/miniconda3/etc/profile.d/conda.sh
+conda activate qcqcnn
+export PYTHONPATH=""
+
+echo "=== Job start: $(date) ==="
+echo "CONTROL ARM: MODEL=$MODEL DATASET=$DATASET SEED=$SEED BATCH_SIZE=$BS"
+nvidia-smi --query-gpu=name,memory.total --format=csv
+
+python train_gadi.py \
+    --model "$MODEL" \
+    --dataset "$DATASET" \
+    --seed "$SEED" \
+    --noise_alpha 0.0 \
+    --batch_size "$BS" \
+    --output_dir ./results_v5_control/bs${BS} \
+    --data_root ./data \
+    --checkpoint_dir ./ckpt_v5_control/bs${BS} \
+    --time_budget_hours 9.5
+
+echo "=== Job end: $(date) ==="

@@ -1,0 +1,73 @@
+#!/bin/bash
+#PBS -N v5_mnist
+#PBS -P wa66
+#PBS -q gpuvolta
+#PBS -l walltime=06:00:00
+#PBS -l ncpus=12
+#PBS -l ngpus=1
+#PBS -l mem=32GB
+#PBS -l jobfs=10GB
+#PBS -l storage=gdata/wa66
+#PBS -v MODEL=M2,DATASET=mnist,SEED=42
+
+# ═══════════════════════════════════════════════════════════════════════
+# STEP 3 OF 3 — FULL MNIST 3-vs-5 GRID, locked protocol.
+#
+#   5,000 / 1,250 / 1,000 train/val/test   (Long et al.)
+#   100 max epochs, patience 10
+#   min_epochs 30 for M2/M3 only
+#   batch size 32, lr 1e-3, Adam            (v5 change, see Sec 6)
+#   seeds {42,43,44,45,46}
+#
+# NO --n_train / --max_epochs / --patience overrides here. Any override
+# makes train_gadi.py print a REDUCED-SCALE warning and tag the result
+# JSON -- results from an overridden run must not be mixed with these.
+#
+# Walltime is 6h with a 5.5h internal budget; if that turns out to be more
+# than needed (likely, per the timing run), lower it -- shorter walltime
+# means shorter queue on gpuvolta, which is NOT bonus-time eligible.
+# ═══════════════════════════════════════════════════════════════════════
+
+set -e
+cd "$PBS_O_WORKDIR/.."
+echo "PWD=$(pwd)"
+ls -l train_gadi.py quanv_torch.py || { echo "FATAL: repo root not found"; exit 1; }
+
+module load cuda/11.7.0
+source /g/data/wa66/yh2481/miniconda3/etc/profile.d/conda.sh
+conda activate qcqcnn
+export PYTHONPATH=""
+
+echo "=== Job start: $(date) ==="
+echo "MODEL=$MODEL DATASET=$DATASET SEED=$SEED"
+nvidia-smi --query-gpu=name,memory.total --format=csv
+
+nvidia-smi --query-gpu=timestamp,utilization.gpu,memory.used \
+    --format=csv -l 2 > gpu_util_v5_${MODEL}_${DATASET}_s${SEED}.csv &
+NVSMI_PID=$!
+
+set +e
+python train_gadi.py \
+    --model "$MODEL" \
+    --dataset "$DATASET" \
+    --seed "$SEED" \
+    --noise_alpha 0.0 \
+    --output_dir ./results_v5_mnist \
+    --data_root ./data \
+    --checkpoint_dir ./ckpt_v5_mnist \
+    --time_budget_hours 5.5
+RC=$?
+set -e
+
+kill $NVSMI_PID 2>/dev/null || true
+
+# Exit 99 = time budget hit, checkpoint saved, needs a continuation link.
+if [ $RC -eq 99 ]; then
+    echo "Time budget reached -- submitting continuation link."
+    cd "$PBS_O_WORKDIR"
+    qsub -v MODEL=$MODEL,DATASET=$DATASET,SEED=$SEED run5_mnist_grid.pbs
+    exit 0
+fi
+
+echo "=== Job end: $(date) rc=$RC ==="
+exit $RC

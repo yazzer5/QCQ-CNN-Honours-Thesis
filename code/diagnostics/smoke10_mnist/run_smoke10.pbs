@@ -1,0 +1,55 @@
+#!/bin/bash
+#PBS -P wa66
+#PBS -q gpuvolta
+#PBS -l ncpus=12
+#PBS -l ngpus=1
+#PBS -l mem=32GB
+#PBS -l jobfs=10GB
+#PBS -l walltime=00:20:00
+#PBS -l storage=gdata/wa66
+#PBS -l wd
+#PBS -N smoke10
+#PBS -j oe
+#
+# 10-class MNIST diagnostic, all four models, both QNN head widths.
+#
+# NOT a thesis experiment. Reduced scale, NOT iso-parametric. See
+# README_smoke10.md before quoting any number this produces.
+#
+# Submit from the smoke10/ directory:
+#     qsub run_smoke10.pbs
+#
+# Runtime is ~2 min on CPU; the 20 min walltime is generous headroom and
+# schedules faster than the 1 h the grid jobs request.
+
+set -e
+
+echo "=== Job start: $(date) ==="
+echo "PWD=$PWD"
+
+source /g/data/wa66/yh2481/miniconda3/etc/profile.d/conda.sh
+conda activate qcqcnn
+export PYTHONPATH=""
+
+# data/ is expected as a symlink to ../data (the v7 staged copy). Compute
+# nodes have no internet, so verify and extract before touching torchvision.
+if [ ! -e ./data ]; then
+    echo "FATAL: ./data not found. Run:  ln -s ../data ./data"
+    exit 1
+fi
+
+python ../scripts/preflight_data.py --data_root ./data --classes 0,6 \
+    || { echo "FATAL: data preflight failed -- not training"; exit 1; }
+
+nvidia-smi --query-gpu=name,memory.total --format=csv || true
+
+python smoke10_mnist.py \
+    --data_root ./data \
+    --head both \
+    --seed "${SEED:-42}" \
+    --epochs "${EPOCHS:-100}" \
+    --out "results_smoke10"
+
+RC=$?
+echo "=== Job end: $(date) rc=$RC ==="
+exit $RC

@@ -1,0 +1,62 @@
+#!/bin/bash
+#PBS -N v5_timing
+#PBS -P wa66
+#PBS -q gpuvolta
+#PBS -l walltime=01:00:00
+#PBS -l ncpus=12
+#PBS -l ngpus=1
+#PBS -l mem=32GB
+#PBS -l jobfs=10GB
+#PBS -l storage=gdata/wa66
+#PBS -v MODEL=M2,DATASET=mnist,SEED=42
+
+# ═══════════════════════════════════════════════════════════════════════
+# STEP 1 OF 3 — TIMING RUN.  Run this BEFORE the grid.
+#
+# Full-protocol data volume (5000/1250/1000) but only 3 epochs, so it
+# returns a real per-epoch time at the scale that matters. Everything
+# downstream (grid walltime, whether chaining is needed at all) depends on
+# this number. Do not guess it.
+#
+# Pass criteria:
+#   * [GRADCHECK] block prints a non-zero |grad| for EVERY trainable tensor
+#   * per-epoch time is seconds-to-low-minutes, not hundreds of seconds
+#   * gpu_util CSV shows non-zero utilisation during the epochs
+# ═══════════════════════════════════════════════════════════════════════
+
+set -e
+cd "$PBS_O_WORKDIR/.."
+
+# Fail loudly rather than with one stderr line if the path is wrong again
+echo "PWD=$(pwd)"
+ls -l train_gadi.py quanv_torch.py || { echo "FATAL: repo root not found"; exit 1; }
+
+module load cuda/11.7.0
+source /g/data/wa66/yh2481/miniconda3/etc/profile.d/conda.sh
+conda activate qcqcnn
+export PYTHONPATH=""
+
+echo "=== Job start: $(date) ==="
+echo "MODEL=$MODEL DATASET=$DATASET SEED=$SEED"
+nvidia-smi --query-gpu=name,memory.total --format=csv
+
+nvidia-smi --query-gpu=timestamp,utilization.gpu,memory.used \
+    --format=csv -l 2 > gpu_util_v5timing_${MODEL}_${DATASET}_s${SEED}.csv &
+NVSMI_PID=$!
+
+python train_gadi.py \
+    --model "$MODEL" \
+    --dataset "$DATASET" \
+    --seed "$SEED" \
+    --noise_alpha 0.0 \
+    --output_dir ./results_v5_timing \
+    --data_root ./data \
+    --max_epochs 3 \
+    --min_epochs_quantum 0 \
+    --patience 100
+
+kill $NVSMI_PID 2>/dev/null || true
+echo "=== Job end: $(date) ==="
+echo "Peak GPU util:"
+awk -F, 'NR>1{gsub(/[^0-9]/,"",$2); if($2+0>m) m=$2+0} END{print m"%"}' \
+    gpu_util_v5timing_${MODEL}_${DATASET}_s${SEED}.csv
