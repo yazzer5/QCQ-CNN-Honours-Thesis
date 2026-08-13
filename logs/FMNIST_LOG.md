@@ -389,11 +389,17 @@ head at a fixed best-checkpoint comparison — this is now a three-for-three
 replication once 0,6 is excluded for its metric issue.
 
 **The pre-registered grouped QNN-head accuracy penalty (M1,M2 vs M3,M4)
-replicated at 0,6 (−1.18 pp, p = 0.011) but not at 2,4** (M3−M4 alone, the
-closest single-pair analogue, sits at p = 0.022 uncorrected and below its own
-MDE). It was not separately tested as a grouped contrast at 2,6 in the
-original run; doing so retrospectively is possible but was not pre-registered
-for that grid, so it is reported here as an open item rather than a result.
+shrank across all three pairs rather than staying flat**: −1.18 pp (0,6,
+p = 0.011) → −1.13 pp (2,6) → **−0.65 pp (2,4)**. This corrects an earlier
+version of this note, which incorrectly stated the grouped contrast was
+"not separately tested" at 2,6 — it was, in `PREREGISTRATION_2_4.md`, and
+the 2,4 figure is computed the same way here. The ~40% reduction from 2,6 to
+2,4 is the strongest evidence yet that the QNN-head penalty is at least
+partly difficulty-driven, even though the corresponding single-pair M3−M4
+accuracy contrasts remain individually null or marginal. This was
+`PREREGISTRATION_2_4.md`'s prediction 3 ("penalty stays near −1.1 pp"), and
+it is **falsified** — see §5.8 for the full scoring of that document's five
+predictions.
 
 **M3 is the best single model at both 2,6 and 2,4**, not M4 as predicted
 before either grid ran (§9's pre-registered predictions, now falsified on
@@ -405,6 +411,30 @@ did not hold.
 Plots for all four experiments (accuracy by model, training curves, and
 gap@best where measured) are in each experiment's `results/<dir>/analysis/`
 folder, with an index at `results/analysis_index.html`.
+
+### 5.8 Scoring `PREREGISTRATION_2_4.md` (registered 2026-08-12, after 2,6, before 2,4)
+
+This is a distinct, more targeted set of predictions from the four-item list
+in §9 below — registered specifically before the 2,4 grid, using the 2,6
+results as context. Full text: `docs/PREREGISTRATION_2_4.md` /
+`code/v9_fashion/PREREGISTRATION_2_4.md`.
+
+| # | Prediction | Outcome |
+|---|---|---|
+| 1 | All three attribution contrasts null again | **Held**, with a caveat — M3−M4 hit p = 0.022 uncorrected, but does not survive Holm correction and sits just below its own MDE (1.24 vs 1.27 pp) |
+| 2 | M2 > M1 in sign, magnitude ≤ 1.0 pp (holding a third time) | **Falsified** — sign flipped to M2 < M1 (−0.30 pp) |
+| 3 | Grouped QNN-head penalty stays near −1.1 pp rather than shrinking | **Falsified** — shrank to −0.65 pp (§5.7) |
+| 4 | gap@best monotone in quantum content (M2 > M1 > M3 > M4) a third time | **Held exactly** — 7.90 / 6.96 / 4.80 / 3.54 pp |
+| 5 | (no prediction registered on which model wins) | M3 won again, consistent with 2,6, reversing 0,6 |
+
+Two of four scored predictions held (1 with caveat, 4 cleanly); two were
+falsified (2 and 3). Read together with §5.7 and the earlier four-item
+scoring in §9: the training-dynamics finding (gap@best ordering) is now the
+most consistently-replicating result in the project, while every
+accuracy-based directional claim — sign of M2−M1, stability of the grouped
+penalty, which model wins — has flipped or shrunk at least once across the
+three pairs. That asymmetry is itself worth stating plainly: this project has
+a robust generalisation-gap finding and no robust accuracy finding.
 
 ---
 
@@ -543,9 +573,12 @@ formality, and both misses are now documented findings in their own right
   not yet started; config in `MNIST_LOG.md` §8.6
 - **Environment repair** (stale qiskit dist-info) — deferred, must happen
   before Aim 3 (noise), which needs Aer's NoiseModel via the qiskit path
-- **v8/v9 code files** (`train_gadi.py` etc.) not yet checked into
-  `code/v8_fashion/` or `code/v9_fashion/` in this repo — only results, job
-  logs, and docs have been added so far (2026-08-13). Add once available.
+- **v9 code files** now checked into `code/v9_fashion/` (2026-08-13). **v8 code
+  still missing** — v9 is v8 with only the `CODE_VERSION` tag changed (no
+  behavioural diff), so `code/v9_fashion/` is the accurate reference for both
+  grids' actual code, but a `code/v8_fashion/` folder does not yet exist in
+  this repo. Low priority given the two are behaviourally identical, but
+  worth adding for provenance completeness if the v8 zip is ever at hand.
 - Regenerate `fig1_accuracy_and_gap.png` and `fig3_gap_vs_acc_and_epochs.png`
   against gap@best (§7) — still not done, separate from the new
   per-experiment `analysis/` plots

@@ -82,7 +82,9 @@ difference was measured across 5 seeds and found immaterial.
 code/
   v5_validation/     correctness debugging; three silent defects found here
   v6_mnist/          MNIST 3-vs-5 grid; batched torch simulation (214-803x)
-  v7_fashion/        Fashion-MNIST; offline data handling; two launch bugs fixed
+  v7_fashion/        Fashion-MNIST 0,6; offline data handling; two launch bugs fixed
+  v9_fashion/        Fashion-MNIST 2,6 and 2,4 (v8 == v9 minus version tag,
+                     no separate folder); lazy qiskit import, gap@best fix
   v10_mnist10/       full 10-class MNIST grid; 3-observable readout, re-padded
                      iso-parametric budget, --deterministic, --save_predictions
   diagnostics/
@@ -169,5 +171,5 @@ set · enable deterministic algorithms to shrink the non-determinism floor ·
 pilot a better difficulty ladder before the next grid · [10-class multiclass
 readout now fixed in v10] · run McNemar on the v10 predictions once raw
 result JSONs are available. Also outstanding: Long-faithful arm (b) for all
-three Fashion pairs and for 10-class; v8/v9/v10 code partially checked into
-`code/` (v10 code is in; v8/v9 code files still missing, only results).
+three Fashion pairs and for 10-class; v10 raw per-run result JSONs (only a
+summary is in the repo so far, §7 caveat).

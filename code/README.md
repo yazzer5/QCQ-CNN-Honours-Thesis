@@ -22,14 +22,24 @@ reformulated as batched torch tensor algebra — **214× at batch 32, 803× at b
 128**, verified to ~1e-6 relative error against the reference implementation.
 
 ## v7_fashion
-Fashion-MNIST. Two silent launch bugs fixed: `qsub -v CLASSES=0,6` parsed as
+Fashion-MNIST 0,6. Two silent launch bugs fixed: `qsub -v CLASSES=0,6` parsed as
 `CLASSES=0` plus a stray variable (PBS's `-v` is itself comma-separated), and the
 time-budget continuation branch silently reverted to MNIST. Added offline data
 handling for compute nodes with no internet. See `docs/CHANGELOG_v7.md`.
 
-*(v8 and v9 are v7 with a version tag and, for v8+, a corrected gap@best
-metric — see `docs/CHANGELOG_v8.md`. Their code files are not yet checked
-into this repo; only results, job logs, and docs have been added so far.)*
+## v9_fashion
+Fashion-MNIST 2,6 and 2,4 (arm (a), both pairs — v8 and v9 are behaviourally
+identical, differing only in the `CODE_VERSION` string stamped into each
+result JSON; `v9_fashion/` is the actual code used for both grids, and a
+separate `v8_fashion/` folder has not been added since it would be a
+byte-for-byte duplicate apart from that one string). Two changes from v7:
+qiskit imports moved behind a lazy `_import_qiskit()` so a broken/stale
+qiskit install only degrades the (unused, alpha=0) reference QNN path instead
+of killing every run — this is what job 175978087 hit — and the
+generalisation gap is now measured as `train_acc − test_acc` on the same
+restored best-validation checkpoint (`gap_at_best`), fixing the
+different-models bug described in `FMNIST_LOG.md` §6.1. See
+`docs/CHANGELOG_v8.md` and `code/v9_fashion/PREREGISTRATION_2_4.md`.
 
 ## v10_mnist10
 Full 10-class MNIST grid. v9 plus: a 3-observable QNN readout (`<Z0>`, `<Z1>`,
