@@ -8,11 +8,17 @@ accuracy, the parameter count, and the full protocol under which it ran.
 |---|---|---|
 | `results_v6_mnist_3v5/` | 20 | MNIST 3-vs-5, 4 models × 5 seeds, α=0 |
 | `results_v7_fashion_c06/` | 20 | Fashion-MNIST 0,6, 4 models × 5 seeds |
+| `results_v8_fashion_c26/` | 20 | Fashion-MNIST 2,6, 4 models × 5 seeds — corrected gap@best metric |
+| `results_v9_fashion_c24/` | 20 | Fashion-MNIST 2,4, 4 models × 5 seeds — closes the arm (a) sequence |
 | `results_reps_fashion_mnist_c06/` | 20 | ansatz depth ablation, M1/M2 × reps{1,2} × 5 seeds |
 | `results_smoke10_mnist10/` | 6 | 10-class diagnostic — **not iso-parametric** |
 | `results_v5_scale1000/`, `results_v5_scale3000/`, `results_v5_smoke/` | 12 | reduced-scale validation |
 | `job_logs/` | — | PBS stdout/stderr, including full epoch traces |
 | `gpu_traces/` | — | GPU utilisation CSVs |
+
+Each of the four main grids (v6, v7, v8, v9) also has an `analysis/` subfolder
+with `plots/` (accuracy-by-model, training curves, and gap@best where
+measured) and a standalone `report.html`. Index: `results/analysis_index.html`.
 
 ## Headline numbers
 
@@ -22,6 +28,22 @@ M4 99.14 ± 0.21. Total spread 0.08 pp; saturated.
 **Fashion-MNIST 0,6** — M1 83.98 ± 0.62 · M2 84.60 ± 1.11 · M3 85.26 ± 1.03 ·
 M4 85.68 ± 0.91. Adjacent contrasts null (MDE ≈ 1.8 pp); QNN head vs classical
 head −1.18 pp, p = 0.011.
+
+**Fashion-MNIST 2,6** — M1 85.70 ± 0.41 · M2 86.74 ± 0.58 · M3 87.70 ± 0.79 ·
+M4 87.00 ± 0.42. All attribution contrasts null (MDE 1.6–1.9 pp); M2−M1
++1.04 pp, p = 0.075. M3 is the best model (not M4). Gap@best monotone in
+quantum content, M2−M4 p = 0.0040.
+
+**Fashion-MNIST 2,4** — M1 87.30 ± 0.80 · M2 87.00 ± 1.19 · M3 88.42 ± 0.80 ·
+M4 87.18 ± 0.40. M2−M1 −0.30 pp (sign flip vs 2,6), below MDE of 2.26 pp.
+M3−M4 +1.24 pp nominally significant (p = 0.022) but does not survive Holm
+correction and sits below its own MDE. M3 again the best model. Gap@best
+monotone in quantum content, M2−M4 p = 0.0027.
+
+**Pooled 2,6 + 2,4** — M2 beat M1 in 7/10 seeds; both grid-level contrasts
+remain individually null. The pre-planned difficulty gradient collapsed
+between 2,6 and 2,4 (0.18 pp apart in M4 accuracy, inside the ~0.8 pp
+non-determinism floor). Full synthesis in `logs/FMNIST_LOG.md` §5.7.
 
 **Ansatz depth** — M1 −0.02 pp (p = 0.975), M2 −0.14 pp (p = 0.773). Null.
 

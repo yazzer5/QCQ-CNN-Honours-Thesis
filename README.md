@@ -49,11 +49,18 @@ statistically indistinguishable from every quantum variant. This is a **ceiling
 effect, not a null result about quantum layers** — and it is the control that
 shows why MNIST-class results in this literature should be read cautiously.
 
-**2. With 15.8 pp of headroom, the fully classical model is still best.**
-On Fashion-MNIST 0-vs-6 (T-shirt/top vs Shirt), the three pre-registered
-contrasts remain null (MDE ≈ 1.8 pp), but the end-to-end comparison is
-significant: models carrying the QNN head sit **1.18 pp behind** the classical
-heads (p = 0.011), and M4 is the best model overall.
+**2. Across all three Fashion-MNIST pairs, the QNN head is consistently the
+weakest component — but which classical-head model wins is not stable.**
+On 0-vs-6 (T-shirt/top vs Shirt), the three pre-registered contrasts remain
+null (MDE ≈ 1.8 pp), but the end-to-end comparison is significant: models
+carrying the QNN head sit **1.18 pp behind** the classical heads (p = 0.011),
+and M4 (fully classical) is best overall. On 2-vs-6 and 2-vs-4, however, **M3**
+(trainable quantum front-end + classical head) overtakes M4 as the best single
+model — a pre-registered prediction that M4 would stay best was falsified on
+both remaining pairs. The pre-planned difficulty gradient across the three
+pairs also collapsed: 2,6 and 2,4 landed 0.18 pp apart in M4 accuracy, inside
+the ~0.8 pp non-determinism floor. See `FMNIST_LOG.md` §5.7 for the full
+cross-experiment synthesis.
 
 **3. The QNN back-end is measurement-limited, not parameter-limited.**
 Widening the readout from one observable ⟨ZZ⟩ to three (⟨Z0⟩, ⟨Z1⟩, ⟨ZZ⟩) — at
@@ -83,9 +90,13 @@ code/
 results/
   results_v6_mnist_3v5/              20 runs — 4 models x 5 seeds
   results_v7_fashion_c06/            20 runs — Fashion 0,6
+  results_v8_fashion_c26/            20 runs — Fashion 2,6 (gap@best metric fix)
+  results_v9_fashion_c24/            20 runs — Fashion 2,4 (closes arm-a sequence)
   results_reps_fashion_mnist_c06/    20 runs — ansatz depth ablation
   results_smoke10_mnist10/            6 runs — 10-class diagnostic
   results_v5_*/                      reduced-scale validation
+  results_v*/analysis/               plots + standalone HTML report, per experiment
+  analysis_index.html                links all four per-experiment reports
   job_logs/                          PBS stdout/stderr — full epoch histories
   gpu_traces/                        GPU utilisation CSVs
 
@@ -142,8 +153,14 @@ Hardware used: NCI Gadi, `gpuvolta` queue (Tesla V100-SXM2-32GB), project
 
 ## Status
 
-Complete: MNIST 3-vs-5 grid · Fashion-MNIST 0,6 grid · 10-class diagnostic ·
-ansatz-depth ablation · M1-vs-Long verification.
+Complete: MNIST 3-vs-5 grid · Fashion-MNIST 0,6 / 2,6 / 2,4 grids (all of arm
+(a), 80 runs total) · 10-class diagnostic · ansatz-depth ablation · M1-vs-Long
+verification · cross-experiment synthesis across all four grids.
 
-Next: Fashion-MNIST pairs 2,6 and 2,4; Long-faithful arm (b); 10-class with a
-proper multiclass fix. Full queue in `logs/MNIST_LOG.md` §9.
+Next (prioritised six-step plan, `logs/FMNIST_LOG.md` §9): save per-image
+predictions for McNemar's test · use the full 2,000-image Fashion-MNIST test
+set · enable deterministic algorithms to shrink the non-determinism floor ·
+pilot a better difficulty ladder before the next grid · fix the 10-class
+multiclass readout · run 10-class MNIST properly (diagnostic already shows
+M2−M1 ≈ +6.4 pp, ~3× any binary MDE). Also outstanding: Long-faithful arm (b)
+for all three pairs; v8/v9 code files not yet checked into `code/`.

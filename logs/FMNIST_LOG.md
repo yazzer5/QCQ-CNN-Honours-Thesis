@@ -198,6 +198,66 @@ M3  84.8  85.7  83.7  86.3  85.8
 M4  84.4  86.1  85.2  85.9  86.8
 ```
 
+### 2026-08-11/12 — 2,6 grid complete (20/20), code v8
+
+Code v8 changes protocol/numerics not at all; it fixes the gap metric to
+`gap_at_best = train_acc(best checkpoint, eval mode) − test_acc(same
+checkpoint)`, resolving §6.1. Integrity gate: `rc=0`, 0 inversions,
+`CLASSES=2,6` echoed in every log, `n_params` 1604/1610/1600/1594, no
+smoke/reduced-scale runs in the grid. ~48 SU.
+
+| Model | Front-end | Head | Test acc | Best val | Gap@best | Best ep | Stop ep |
+|---|---|---|---|---|---|---|---|
+| M1 | frozen Henderson | QNN | 85.70 ± 0.41% | 88.37% | +7.31 pp | 13.6 | 39.0 |
+| M2 | trainable Circuit 4 | QNN | 86.74 ± 0.58% | 89.22% | +7.90 pp | 20.8 | 39.0 |
+| M3 | trainable Circuit 4 | classical | **87.70 ± 0.79%** | 90.08% | +5.97 pp | 32.4 | 43.4 |
+| M4 | bilinear resize | classical | 87.00 ± 0.42% | 89.46% | +4.61 pp | 36.6 | 46.6 |
+
+Attribution contrasts (paired t, n=5, df=4): M2−M1 +1.04 pp (t=2.40, p=0.075,
+ns) — MDE 1.61 pp, below MDE. M2−M3 −0.96 pp (p=0.110, ns), MDE 1.75 pp.
+M3−M4 +0.70 pp (p=0.246, ns), MDE 1.92 pp. All null; M2−M1 is the closest to
+significance of any attribution contrast run so far. Gap@best: M2−M4
++3.29 pp (p=0.0040 \*\*), M1−M4 +2.70 pp (p=0.0080 \*\*), M2−M3 +1.93 pp
+(p=0.0447 \*) — the QNN-head models show a materially larger train/test gap
+than M4, replicating the M1/M2/M3-vs-M4 split from §6.1's corrected 0,6
+numbers on an independent pair.
+
+Full stats: `results/results_v8_fashion_c26/RESULTS_2_6.txt`. Plots and a
+standalone report: `results/results_v8_fashion_c26/analysis/`.
+
+### 2026-08-12 — 2,4 grid complete (20/20), code v9
+
+Code v9 is v8 with a version tag change only. Integrity gate: `rc=0`, 0
+inversions across all 20 jobs (including the M2/seed42 smoke run),
+`CLASSES=2,4` echoed in every log, `n_params` 1604/1610/1600/1594, no
+smoke/reduced-scale runs counted in the grid. This closes the three-pair
+difficulty sequence (0,6 → 2,6 → 2,4).
+
+| Model | Front-end | Head | Test acc | Best val | Gap@best | Best ep | Stop ep |
+|---|---|---|---|---|---|---|---|
+| M1 | frozen Henderson | QNN | 87.30 ± 0.80% | 89.09% | +6.96 pp | 19.8 | 40.6 |
+| M2 | trainable Circuit 4 | QNN | 87.00 ± 1.19% | 89.63% | +7.90 pp | 20.2 | 39.0 |
+| M3 | trainable Circuit 4 | classical | **88.42 ± 0.80%** | 90.14% | +4.80 pp | 30.4 | 41.8 |
+| M4 | bilinear resize | classical | 87.18 ± 0.40% | 88.85% | +3.54 pp | 40.6 | 50.6 |
+
+Attribution contrasts: M2−M1 −0.30 pp (t=−0.49, p=0.647, ns), MDE 2.26 pp.
+M2−M3 −1.42 pp (p=0.167, ns), MDE 3.13 pp. M3−M4 +1.24 pp (t=3.63,
+p=0.022 \*, uncorrected) — the only nominally-significant accuracy contrast
+across all three Fashion-MNIST pairs, but it does not survive Holm correction
+across the three attribution tests and sits just below its own MDE (1.27 pp),
+so it is flagged as marginal rather than confirmed. Gap@best: M2−M4 +4.36 pp
+(p=0.0027 \*\*), M1−M4 +3.42 pp (p=0.0192 \*) — same QNN-head-vs-M4 split as
+0,6 and 2,6. M2−M3 gap contrast +3.10 pp (p=0.0113 \*).
+
+**M2 vs M1 direction flips sign between the two new pairs** (+1.04 pp at 2,6,
+−0.30 pp at 2,4), both magnitudes well inside their respective MDEs — the
+data are consistent with a small, real, direction-uncertain effect, not with
+either "M2 beats M1" or "M2 equals M1" as established fact. See §6.7 for the
+pooled read across both pairs.
+
+Full stats: `results/results_v9_fashion_c24/RESULTS_2_4.txt`. Plots and a
+standalone report: `results/results_v9_fashion_c24/analysis/`.
+
 ---
 
 ## 6. Analysis
@@ -298,6 +358,54 @@ is why M1/M2 sit at ~84% here rather than ~30% on 10 classes, and it is the
 strongest available argument for staying binary and obtaining headroom from
 harder class pairs.
 
+### 5.7 Cross-experiment synthesis (v6 + v7 + v8 + v9, 80 runs total)
+
+With all three Fashion-MNIST pairs and the MNIST saturation reference
+complete, the following holds across the full set:
+
+**The pre-planned difficulty gradient collapsed.** 0,6 was intended as the
+hardest pair (M4 84.20%), 2,6 the middle pair, 2,4 the easiest. Measured M4
+accuracy: 0,6 = 84.20%, 2,6 = 87.00%, 2,4 = 87.18% — 2,6 and 2,4 landed only
+0.18 pp apart, inside the ~0.8 pp non-determinism floor established in §5.5.
+The gradient exists between 0,6 and the other two pairs but not between 2,6
+and 2,4. Framing this as three ordered difficulty levels is not supported by
+the data; framing it as "one hard pair, two similarly-easy pairs" is.
+
+**M2 vs M1, pooled across the two new pairs.** Per-seed win count: M2 beat M1
+in 7 of 10 seeds (5 at 2,6, 2 at 2,4). Both grid-level contrasts are
+individually null (§5's run-log entries above) and the sign flips between
+pairs. A 7/10 win rate with both point estimates inside their MDE is a power
+statement, not a directional finding — it is consistent with a small true
+positive effect obscured by noise, and equally consistent with zero true
+effect. This does **not** license abandoning the M2 > M1 hypothesis; it
+licenses running enough seeds to resolve it (see the six-step plan in §9).
+
+**Gap@best is monotone in quantum content at both correctly-measured pairs**
+(2,6 and 2,4; 0,6 used the withdrawn metric, §6.1). M2 > M1 > M3 > M4 in
+gap@best at 2,6; a similar split at 2,4. M2−M4 survives Holm correction
+across the five gap contrasts reported per grid (p = 0.0040 at 2,6, p =
+0.0027 at 2,4). The QNN head consistently overfits more than the classical
+head at a fixed best-checkpoint comparison — this is now a three-for-three
+replication once 0,6 is excluded for its metric issue.
+
+**The pre-registered grouped QNN-head accuracy penalty (M1,M2 vs M3,M4)
+replicated at 0,6 (−1.18 pp, p = 0.011) but not at 2,4** (M3−M4 alone, the
+closest single-pair analogue, sits at p = 0.022 uncorrected and below its own
+MDE). It was not separately tested as a grouped contrast at 2,6 in the
+original run; doing so retrospectively is possible but was not pre-registered
+for that grid, so it is reported here as an open item rather than a result.
+
+**M3 is the best single model at both 2,6 and 2,4**, not M4 as predicted
+before either grid ran (§9's pre-registered predictions, now falsified on
+that specific point). M4 was best only at 0,6. This reverses the working
+assumption that the fully classical control dominates as tasks get easier —
+worth flagging explicitly to the supervisor as a registered prediction that
+did not hold.
+
+Plots for all four experiments (accuracy by model, training curves, and
+gap@best where measured) are in each experiment's `results/<dir>/analysis/`
+folder, with an index at `results/analysis_index.html`.
+
 ---
 
 ## 7. Figures
@@ -309,6 +417,25 @@ harder class pairs.
 | `fig3_gap_vs_acc_and_epochs.png` | gap-vs-accuracy; best vs stop epoch — **also uses the withdrawn metric** |
 
 Both flagged figures need regenerating against §6.1.
+
+**Per-experiment analysis plots (2026-08-13):** each of the four completed
+grids now has its own `analysis/plots/` folder and a standalone
+`analysis/report.html` under its results directory:
+
+| Experiment | Path |
+|---|---|
+| MNIST 3v5 (v6) | `results/results_v6_mnist_3v5/analysis/` |
+| Fashion 0,6 (v7) | `results/results_v7_fashion_c06/analysis/` |
+| Fashion 2,6 (v8) | `results/results_v8_fashion_c26/analysis/` |
+| Fashion 2,4 (v9) | `results/results_v9_fashion_c24/analysis/` |
+
+Each contains `accuracy_by_model.png`, `training_curves.png`, and (v8/v9 only,
+since v6/v7 predate the gap@best fix) `gap_at_best.png`. A top-level index at
+`results/analysis_index.html` links all four reports. These are generated
+directly from the raw `result_*.json` files by
+`build_analysis.py` (script not yet checked into the repo — see
+§9 open items) and are independent of `fig1–fig3` above, which remain the
+figures drafted for the thesis document itself.
 
 ---
 
@@ -343,54 +470,85 @@ Both flagged figures need regenerating against §6.1.
 - v7 built; two silent-failure bugs fixed; offline data path verified end-to-end
 - **Baseline verified: M1 matches Long's implementation** (§3, `MNIST_LOG.md` §8)
 - **reps=1 vs reps=2 ablation** — null, ansatz depth immaterial (§3)
-- **Fashion-MNIST 0,6 grid complete — 20/20 clean**
-- Analysis complete, including one metric retraction (§6.1)
+- **Fashion-MNIST 0,6 grid complete — 20/20 clean** (code v7)
+- **Fashion-MNIST 2,6 grid complete — 20/20 clean** (code v8, corrected gap@best metric)
+- **Fashion-MNIST 2,4 grid complete — 20/20 clean** (code v9) — closes arm (a)
+  for all three planned pairs
+- Analysis complete for all four grids (v6/v7/v8/v9, 80 runs total), including
+  one metric retraction (§6.1) and the cross-experiment synthesis (§5.7)
+- Per-experiment accuracy/training-curve/gap@best plots and standalone HTML
+  reports generated for all four grids (§7)
 
 ### Established
-- Pre-registered accuracy contrasts null even with 15.8 pp headroom
-  (MDE ≈ 1.8 pp)
-- **M4, the fully classical control, is the best model on this task**
-- QNN-head models ~1.2 pp behind, p = 0.011
-- M1/M2 converge ~4× earlier than M4 (epoch 12–17 vs 51)
-- Only M4 differs significantly on overfitting; M1/M2/M3 indistinguishable
+- Pre-registered accuracy contrasts null at every pair tested, even with
+  15.8 pp headroom at 0,6 (MDE ≈ 1.8–2.3 pp depending on pair)
+- **M3 (trainable front-end + classical head), not M4, is the best model at
+  2,6 and 2,4** — M4 was best only at 0,6. This falsifies pre-registered
+  prediction (1) below; see §5.7.
+- **The difficulty gradient did not hold between 2,6 and 2,4** — they landed
+  0.18 pp apart in M4 accuracy, inside the ~0.8 pp non-determinism floor.
+  Prediction (2) below is falsified as stated; the gap does narrow from 0,6
+  to the other two pairs, just not further between them.
+- M1/M2 converge ~2–3× earlier than M3/M4 at every pair tested — prediction
+  (3) holds directionally, though the multiplier shrinks as pairs get easier
+  (4× at 0,6, ~2× at 2,6/2,4)
+- Gap@best is **not** flat across M1/M2/M3 as prediction (4) expected — it is
+  monotone in quantum content (M2 > M1 > M3 > M4) at both 2,6 and 2,4, and
+  M2−M4 survives Holm correction at both pairs (§5.7)
+- **M2 vs M1 direction flips sign** between 2,6 (+1.04 pp) and 2,4 (−0.30 pp);
+  pooled 7/10 seed win rate for M2. Both individual contrasts remain below
+  MDE — underpowered, not resolved. The core M2 > M1 hypothesis stays open,
+  not abandoned (see six-step plan below)
 - Fixed-seed runs vary ~0.8 pp from GPU non-determinism
-- The 0,6 grid is **valid and does not need re-running** — the baseline
-  verification confirmed M1, so its M1 column stands
+- All four grids are **valid and none need re-running** on integrity grounds
+  — every job passed the 7-point gate cleanly
 
-### NEXT EXPERIMENTS
+### Outcome of the pre-registered predictions (registered 2026-08-11/12, before 2,6/2,4 ran)
 
-Full list with rationale in `MNIST_LOG.md` §9. Fashion-MNIST portion:
+| # | Prediction | Outcome |
+|---|---|---|
+| 1 | M4 remains best model on both pairs | **Falsified** — M3 was best at both |
+| 2 | M1/M2-vs-M3/M4 gap narrows monotonically across 0,6→2,6→2,4 | **Partially falsified** — narrows 0,6→2,6, then flat 2,6→2,4 |
+| 3 | M1/M2 converge ~3–4× earlier than M4 | **Held**, magnitude softening as task eases |
+| 4 | Gap@best flat across M1/M2/M3, only M4 lower | **Falsified** — gap@best is monotone in quantum content |
 
-| # | Experiment | Runs | Command |
-|---|---|---|---|
-| 1 | 0,6 arm (a) iso-parametric | — | ✅ DONE |
-| 2 | **2,6 arm (a)** | 20 | `./submit_run7_fashion.sh 2,6` |
-| 3 | **2,4 arm (a)** | 20 | `./submit_run7_fashion.sh 2,4` |
-| 4 | 0,6 / 2,6 / 2,4 arm (b) Long-faithful | 60 | config change, see `MNIST_LOG.md` §8.6 |
+Registering these before running paid off precisely by failing on two of
+four points — that is what makes the exercise a real test rather than a
+formality, and both misses are now documented findings in their own right
+(§5.7) rather than silently revised expectations.
 
-**One full-scale smoke test before each grid.** Non-negotiable.
+### NEXT — six-step improvement plan (prioritised, per cross-experiment synthesis)
 
-### Register this prediction BEFORE running 2,6 and 2,4
+1. **Save per-image predictions** for every future run → enables McNemar's
+   test, a more powerful within-model-pair comparison than the current paired
+   t-test on aggregate accuracy
+2. **Use the full 2,000-image Fashion-MNIST test set** (currently 1,000) —
+   free resolution improvement, no extra training cost
+3. **Enable `torch.use_deterministic_algorithms`** → should roughly halve the
+   ~0.8 pp non-determinism floor identified in §5.5, strengthening every
+   paired comparison
+4. **Pilot a better difficulty ladder** via M4-only runs across ~10 candidate
+   Fashion-MNIST pairs before committing another 4-model × 5-seed grid to a
+   pair — the 2,6/2,4 collapse shows accuracy alone is a poor difficulty proxy
+   chosen a priori
+5. **Fix the 10-class MNIST multiclass readout** to 3+ observables and
+   rebalance the parameter budget (`MNIST_LOG.md` §9)
+6. **Run 10-class MNIST properly** — the diagnostic already shows
+   M2−M1 ≈ +6.4 pp, roughly 3× any MDE seen in the binary experiments, and is
+   the single most promising unexplored direction for resolving the central
+   M2 vs M1 hypothesis with adequate power
 
-Writing it down first is what makes these runs confirmatory rather than
-exploratory, and examiners distinguish the two:
-
-1. **M4 remains the best model** on both pairs.
-2. **The M1/M2 vs M3/M4 accuracy gap narrows** as the task eases — 0,6 (84%)
-   showed 1.18 pp; expect less at 2,6 (87%) and less again at 2,4 (88%),
-   trending toward the 0.08 pp seen at MNIST saturation.
-3. **M1/M2 continue to converge ~3–4× earlier** than M4.
-4. **Gap@best remains flat across M1/M2/M3**, with only M4 lower.
-
-If (2) holds across three difficulty levels, that is a dose-response result on
-task difficulty and far stronger than any single comparison. If it fails, the
-ordering is not difficulty-driven and that redirects effort to Aim 3.
-
-### Immediate housekeeping
-1. Regenerate the two flagged figures using gap@best (§7) — **do not show the
-   current versions**
-2. Fix the gap metric definition in code before further runs
-3. Run `scripts/verify_reps.py` to completion (login node, free)
+### Also outstanding
+- **Long-faithful arm (b)** for all three pairs (0,6 / 2,6 / 2,4) — 60 runs,
+  not yet started; config in `MNIST_LOG.md` §8.6
+- **Environment repair** (stale qiskit dist-info) — deferred, must happen
+  before Aim 3 (noise), which needs Aer's NoiseModel via the qiskit path
+- **v8/v9 code files** (`train_gadi.py` etc.) not yet checked into
+  `code/v8_fashion/` or `code/v9_fashion/` in this repo — only results, job
+  logs, and docs have been added so far (2026-08-13). Add once available.
+- Regenerate `fig1_accuracy_and_gap.png` and `fig3_gap_vs_acc_and_epochs.png`
+  against gap@best (§7) — still not done, separate from the new
+  per-experiment `analysis/` plots
 
 ### Deferred
 - Noise sweep, reframed as a regularisation question
