@@ -10,7 +10,7 @@ accuracy, the parameter count, and the full protocol under which it ran.
 | `results_v7_fashion_c06/` | 20 | Fashion-MNIST 0,6, 4 models × 5 seeds |
 | `results_v8_fashion_c26/` | 20 | Fashion-MNIST 2,6, 4 models × 5 seeds — corrected gap@best metric |
 | `results_v9_fashion_c24/` | 20 | Fashion-MNIST 2,4, 4 models × 5 seeds — closes the arm (a) sequence |
-| `results_v10_mnist10/` | 20 | Full MNIST 10-class grid — **summary only, raw JSONs not yet in repo** |
+| `results_v10_mnist10/` | 20 | 10-class MNIST — raw JSONs + job logs now in repo; **reduced-scale/feasibility, not locked full protocol** |
 | `results_reps_fashion_mnist_c06/` | 20 | ansatz depth ablation, M1/M2 × reps{1,2} × 5 seeds |
 | `results_smoke10_mnist10/` | 6 | 10-class diagnostic — **not iso-parametric** |
 | `results_v5_scale1000/`, `results_v5_scale3000/`, `results_v5_smoke/` | 12 | reduced-scale validation |
@@ -46,15 +46,17 @@ remain individually null. The pre-planned difficulty gradient collapsed
 between 2,6 and 2,4 (0.18 pp apart in M4 accuracy, inside the ~0.8 pp
 non-determinism floor). Full synthesis in `logs/FMNIST_LOG.md` §5.7.
 
-**MNIST 10-class (v10)** — M1 70.59 ± 5.17 · M2 70.92 ± 5.40 · M3 81.96 ± 2.33
-· M4 82.41 ± 1.98. M2−M1 +0.33 pp, p = 0.94, MDE = 16.08 pp — far underpowered.
-QNN-head models show 12–15 pp seed spread vs 5–6 pp for classical-head
-models; this instability, not the M2−M1 point estimate, is the primary
-10-class finding. Classical head beats QNN head by 11.4 pp overall
-(p = 2.2×10⁻⁵). Full write-up in `logs/MNIST_LOG.md` §4b. **Raw per-run
-JSONs for this grid are not yet in the repo** — figures and the summary table
-come from `code/v10_mnist10/scripts/plot_v10_results.py`'s fallback
-constants; see `results_v10_mnist10/summary_v10.json` for provenance.
+**MNIST 10-class (v10) — reduced-scale/feasibility run, not locked full
+protocol** (`docs/AMENDMENT_2026-08-14_v10_reduced_scale.md`) — M1 70.59 ± 5.17
+· M2 70.92 ± 5.40 · M3 81.96 ± 2.33 · M4 82.41 ± 1.98. M2−M1 +0.33 pp, p = 0.94,
+MDE = 16.08 pp — far underpowered. QNN-head models show 12–15 pp seed spread
+vs 5–6 pp for classical-head models; this instability, not the M2−M1 point
+estimate, is the primary 10-class finding. Classical head beats QNN head by
+11.4 pp overall (p = 2.2×10⁻⁵). Pooled McNemar (10,000 image-predictions per
+model) agrees in sign with the accuracy-mean test (M2 > M1, both null,
+p = 0.574) — but per-seed McNemar shows 4/5 seeds individually significant
+(p < 0.0005) with the sign flipping seed to seed, which pooling hides. Full
+write-up in `logs/MNIST_LOG.md` §4b.
 
 **Ansatz depth** — M1 −0.02 pp (p = 0.975), M2 −0.14 pp (p = 0.773). Null.
 

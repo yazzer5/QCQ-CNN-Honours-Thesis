@@ -186,7 +186,19 @@ the thesis spec.
 
 ---
 
-## 4b. Full 10-class MNIST grid, code v10 (2026-08-13) — complete (20/20)
+## 4b. 10-class MNIST grid, code v10 (2026-08-13) — 20/20 clean, **reduced-scale/feasibility run**
+
+> **Amendment 2026-08-14:** every job in this grid ran under
+> `protocol.reduced_scale = true` (`N_TEST=2000, MAX_EPOCHS=200, PATIENCE=20`),
+> not the locked full protocol (`N_TEST=1000, MAX_EPOCHS=100` used by the
+> binary grids). This was missed in the original write-up below because it
+> was drafted from fallback constants before the raw job logs were available;
+> the raw JSONs and job logs now confirm it directly (0/20 `FULL PROTOCOL`,
+> 20/20 `REDUCED-SCALE`). **The numbers below are unchanged and match the
+> raw JSONs exactly** — only the label changes. Full account:
+> `docs/AMENDMENT_2026-08-14_v10_reduced_scale.md`. Treat every finding in
+> this section as a feasibility result pending a locked-protocol confirmation
+> run, not as the final word on 10-class M2 vs M1.
 
 The single-seed diagnostic in §4 (+6.4 pp for M2 over M1) motivated running
 the real thing: 4 models × 5 seeds properly, not a truncated single-seed
@@ -249,22 +261,66 @@ a pattern when writing up methodology.
 
 Full scoring with commentary in `docs/PREREGISTRATION_MNIST10.md` §Outcome.
 Summary: of 5 predictions, 1 falsified outright (M2−M1 magnitude/significance),
-1 falsified on sign (M3−M4), 1 mostly held (accuracy range), 2 not yet
-evaluated (McNemar, determinism check — both require the raw per-run JSONs,
-which are not yet in this repository, see note below).
+1 falsified on sign (M3−M4), 1 mostly held (accuracy range), 1 held (McNemar
+sign agreement, see below), 1 not yet evaluated (determinism check — see
+§Data provenance note).
+
+### McNemar's test — now computed (raw JSONs arrived 2026-08-14)
+
+Using `test_predictions`/`test_labels` from the raw result JSONs (`--save_predictions`
+was enabled for every v10 run, confirmed in the job logs).
+
+**Pooled across all 5 seeds (n = 10,000 image-level predictions per model):**
+M1 70.59%, M2 70.92%, M2-only-correct 1,632 vs M1-only-correct 1,599,
+McNemar χ² = 0.317, p = 0.574. **Null, same direction as the accuracy-mean
+t-test (+0.33 pp, p = 0.94) — prediction 2 holds:** the two tests agree in
+sign, so there is no discrepancy to chase down.
+
+**Per-seed McNemar tells a different story than the pooled test:**
+
+| seed | M1 acc | M2 acc | M1-only correct | M2-only correct | χ² | p |
+|---|---|---|---|---|---|---|
+| 42 | 64.70% | 77.75% | 182 | 443 | 108.16 | <0.0001 (M2 wins) |
+| 43 | 74.35% | 62.75% | 474 | 242 | 74.53 | <0.0001 (M1 wins) |
+| 44 | 71.15% | 72.55% | 332 | 360 | 1.05 | 0.305 (ns) |
+| 45 | 76.70% | 70.30% | 321 | 193 | 31.38 | <0.0001 (M1 wins) |
+| 46 | 66.05% | 71.25% | 290 | 394 | 15.51 | 0.0001 (M2 wins) |
+
+**Four of five seeds show a highly significant per-image difference between
+M1 and M2 — this is a much more sensitive test than the 5-point paired
+t-test on aggregate accuracy, because it uses all 2,000 test images per seed
+instead of one number per seed.** But the sign flips: M2 wins decisively at
+seeds 42/46, M1 wins decisively at 43/45, and seed 44 is the one genuine
+near-tie. Pooling across seeds cancels these out and produces the misleadingly
+quiet p = 0.574 above.
+
+**Read together, this sharpens rather than resolves the central question.**
+The seed-to-seed accuracy swings in §4b are not measurement noise around a
+stable small effect — McNemar shows each seed's M1-vs-M2 difference is itself
+highly non-random, just non-random in *opposite directions* depending on the
+seed. This looks less like "front-end trainability has a small, hard-to-detect
+effect" and more like "which architecture wins depends on some seed-coupled
+factor (initialisation, optimisation trajectory) that this design cannot yet
+identify." Worth flagging to the supervisor as a genuinely new framing, not
+just an underpowered version of the original question — and worth checking
+whether a similar per-seed McNemar split shows up in the binary Fashion-MNIST
+grids (§5.7 note in `FMNIST_LOG.md`, where predictions weren't saved).
 
 ### Data provenance note
 
 This section, `docs/PREREGISTRATION_MNIST10.md`'s outcome, and
-`results/results_v10_mnist10/` were built from the code, docs, and four
-summary figures uploaded on 2026-08-14 — **not from raw `result_M*.json`
-files**, which were not included in that upload. The per-seed numbers above
-are the fallback constants in `code/v10_mnist10/scripts/plot_v10_results.py`
-(dated 2026-08-13), cross-checked against this log's own prior record and
-consistent to 2 decimal places. If the raw JSONs become available: verify
-this table directly, run `scripts/mcnemar.py` and `scripts/mcnemar_seedwise.py`
-for prediction 2, and check the job logs for the `--deterministic` flag
-status for prediction 5.
+`results/results_v10_mnist10/` were originally built (2026-08-14, earlier
+same day) from code, docs, and four summary figures — **not from raw
+`result_M*.json` files**, which were not included in that upload. Raw
+per-run JSONs and job logs arrived later the same day and have now been
+added directly (`results/results_v10_mnist10/result_*.json`,
+`results/job_logs/v10_mnist10/`). Their per-seed test accuracies match the
+previously-used fallback constants exactly, to the digit. **The job logs
+also revealed the reduced-scale protocol issue — see the amendment banner at
+the top of §4b and `docs/AMENDMENT_2026-08-14_v10_reduced_scale.md`.**
+Determinism is confirmed enabled (`deterministic=True` printed in every job
+log); a live re-run to verify bit-exact agreement at fixed seed has not been
+done and remains open (prediction 5).
 
 ---
 

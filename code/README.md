@@ -27,30 +27,38 @@ Fashion-MNIST 0,6. Two silent launch bugs fixed: `qsub -v CLASSES=0,6` parsed as
 time-budget continuation branch silently reverted to MNIST. Added offline data
 handling for compute nodes with no internet. See `docs/CHANGELOG_v7.md`.
 
+## v8_fashion
+Fashion-MNIST 2,6. Two changes from v7: qiskit imports moved behind a lazy
+`_import_qiskit()` so a broken/stale qiskit install only degrades the
+(unused, alpha=0) reference QNN path instead of killing every run — this is
+what job 175978087 hit — and the generalisation gap is now measured as
+`train_acc − test_acc` on the same restored best-validation checkpoint
+(`gap_at_best`), fixing the different-models bug described in
+`FMNIST_LOG.md` §6.1. See `docs/CHANGELOG_v8.md` and
+`code/v8_fashion/PREREGISTRATION_2_6.md`.
+
 ## v9_fashion
-Fashion-MNIST 2,6 and 2,4 (arm (a), both pairs — v8 and v9 are behaviourally
-identical, differing only in the `CODE_VERSION` string stamped into each
-result JSON; `v9_fashion/` is the actual code used for both grids, and a
-separate `v8_fashion/` folder has not been added since it would be a
-byte-for-byte duplicate apart from that one string). Two changes from v7:
-qiskit imports moved behind a lazy `_import_qiskit()` so a broken/stale
-qiskit install only degrades the (unused, alpha=0) reference QNN path instead
-of killing every run — this is what job 175978087 hit — and the
-generalisation gap is now measured as `train_acc − test_acc` on the same
-restored best-validation checkpoint (`gap_at_best`), fixing the
-different-models bug described in `FMNIST_LOG.md` §6.1. See
-`docs/CHANGELOG_v8.md` and `code/v9_fashion/PREREGISTRATION_2_4.md`.
+Fashion-MNIST 2,4. Byte-for-byte identical to `v8_fashion/` except the
+`CODE_VERSION` string (diffed directly to confirm this). Kept as a separate
+folder for provenance even though it duplicates v8's code, since each grid's
+result JSONs are stamped with the code version that actually produced them.
+See `code/v9_fashion/PREREGISTRATION_2_4.md`.
 
 ## v10_mnist10
-Full 10-class MNIST grid. v9 plus: a 3-observable QNN readout (`<Z0>`, `<Z1>`,
-`<Z0Z1>`, same circuit, zero extra circuit parameters), an iso-parametric
-re-pad for 10 classes (M1 1640 / M2 1646 / M3 1649 / M4 1643, spread 0.55% —
-**not** the binary parameter counts), `--deterministic`, and
-`--save_predictions` for McNemar's test. Loss function amended from BCE to
-cross-entropy before the grid ran (`docs/AMENDMENT_2026-08-13_loss.md`). See
-`docs/CHANGELOG_v10.md` and `logs/MNIST_LOG.md` §4b. **Raw per-run result
-JSONs for this grid are not yet in the repo** — only code, docs, and the four
-summary figures; see `results/results_v10_mnist10/summary_v10.json`.
+10-class MNIST grid — **reduced-scale/feasibility run, not the locked full
+protocol** (`N_TEST=2000, MAX_EPOCHS=200` vs the binary grids'
+`N_TEST=1000, MAX_EPOCHS=100`; every job log prints `REDUCED-SCALE /
+FEASIBILITY RUN` explicitly — see `docs/AMENDMENT_2026-08-14_v10_reduced_scale.md`).
+v9 plus: a 3-observable QNN readout (`<Z0>`, `<Z1>`, `<Z0Z1>`, same circuit,
+zero extra circuit parameters), an iso-parametric re-pad for 10 classes (M1
+1640 / M2 1646 / M3 1649 / M4 1643, spread 0.55% — **not** the binary
+parameter counts), `--deterministic` (confirmed enabled in every job log),
+and `--save_predictions` for McNemar's test (now computed — pooled McNemar
+agrees in sign with the accuracy-mean test, but 4/5 individual seeds are
+independently significant with the sign flipping seed to seed). Loss
+function amended from BCE to cross-entropy before the grid ran
+(`docs/AMENDMENT_2026-08-13_loss.md`). Raw per-run result JSONs and job logs
+are now in the repo. See `docs/CHANGELOG_v10.md` and `logs/MNIST_LOG.md` §4b.
 
 ## diagnostics/smoke10_mnist
 10-class MNIST across all four models, at two QNN readout widths. Established

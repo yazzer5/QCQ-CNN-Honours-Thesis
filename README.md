@@ -83,10 +83,12 @@ code/
   v5_validation/     correctness debugging; three silent defects found here
   v6_mnist/          MNIST 3-vs-5 grid; batched torch simulation (214-803x)
   v7_fashion/        Fashion-MNIST 0,6; offline data handling; two launch bugs fixed
-  v9_fashion/        Fashion-MNIST 2,6 and 2,4 (v8 == v9 minus version tag,
-                     no separate folder); lazy qiskit import, gap@best fix
-  v10_mnist10/       full 10-class MNIST grid; 3-observable readout, re-padded
-                     iso-parametric budget, --deterministic, --save_predictions
+  v8_fashion/        Fashion-MNIST 2,6; lazy qiskit import, gap@best metric fix
+  v9_fashion/        Fashion-MNIST 2,4; identical to v8 except CODE_VERSION tag
+  v10_mnist10/       10-class MNIST grid — **reduced-scale/feasibility run,
+                     not the locked full protocol, see caveat below**;
+                     3-observable readout, re-padded iso-parametric budget,
+                     --deterministic, --save_predictions
   diagnostics/
     smoke10_mnist/   10-class MNIST diagnostic (readout width)
     reps_ablation/   reps=1 vs reps=2 ansatz depth ablation
@@ -96,8 +98,8 @@ results/
   results_v7_fashion_c06/            20 runs — Fashion 0,6
   results_v8_fashion_c26/            20 runs — Fashion 2,6 (gap@best metric fix)
   results_v9_fashion_c24/            20 runs — Fashion 2,4 (closes arm-a sequence)
-  results_v10_mnist10/               20 runs — full 10-class grid (summary only,
-                                      raw JSONs not yet in repo — see note below)
+  results_v10_mnist10/               20 runs — 10-class, reduced-scale/feasibility
+                                      (raw JSONs + job logs now in repo)
   results_reps_fashion_mnist_c06/    20 runs — ansatz depth ablation
   results_smoke10_mnist10/            6 runs — 10-class diagnostic
   results_v5_*/                      reduced-scale validation
@@ -148,28 +150,44 @@ Hardware used: NCI Gadi, `gpuvolta` queue (Tesla V100-SXM2-32GB), project
   final-epoch train accuracy minus test accuracy — but the trainer restores the
   best-validation checkpoint before testing, so those are different models. See
   `FMNIST_LOG.md` §6.1. **Regenerate before use.**
+- **The v10 10-class grid ran reduced-scale, not the locked full protocol.**
+  Every job in that grid (`N_TEST=2000, MAX_EPOCHS=200`) is tagged
+  `reduced_scale: true` in its result JSON and prints `REDUCED-SCALE /
+  FEASIBILITY RUN` in its job log — caught 2026-08-14 on receipt of the raw
+  per-run JSONs, after the grid had already been written up as complete.
+  Numbers are unchanged and confirmed correct; treat every v10 finding as a
+  feasibility result, not a locked confirmation. See
+  `docs/AMENDMENT_2026-08-14_v10_reduced_scale.md`.
 - **Runs are not bit-reproducible at fixed seed.** GPU float reduction order is
   non-deterministic; identical configurations differ by ~0.8 pp, comparable to
-  the between-seed SD of 0.92 pp. Disclosed in `FMNIST_LOG.md` §6.5.
+  the between-seed SD of 0.92 pp. Disclosed in `FMNIST_LOG.md` §6.5. (v10 runs
+  with `--deterministic` enabled — this applies to v6–v9 only.)
 - **Every null is bounded by an MDE.** With 5 seeds the design detects ~1.8 pp on
   Fashion-MNIST and ~0.25–0.40 pp on MNIST. A null is a power statement, never
   evidence of equivalence.
-- **The 10-class diagnostic is not iso-parametric.** M3/M4 carry ~480 more
-  parameters than M1/M2 there. It is a diagnostic, not a result.
+- **The 10-class diagnostic (`results_smoke10_mnist10/`) is not iso-parametric.**
+  M3/M4 carry ~480 more parameters than M1/M2 there. It is a diagnostic, not
+  a result. (Separate from the v10 grid above, which is iso-parametric but
+  reduced-scale.)
 
 ## Status
 
 Complete: MNIST 3-vs-5 grid · Fashion-MNIST 0,6 / 2,6 / 2,4 grids (all of arm
-(a), 80 runs total) · full MNIST 10-class grid (v10, arm (a), null at MDE
-16 pp with a notable QNN-head seed-instability finding) · 10-class diagnostic
+(a), 80 runs total, code for all three now in `code/`) · 10-class MNIST
+feasibility run (v10, arm (a), 20/20 clean but reduced-scale — see caveat
+above; null at MDE 16 pp with a notable QNN-head seed-instability finding,
+and per-image McNemar tests now computed: pooled McNemar agrees in sign with
+the accuracy-mean test, but 4/5 individual seeds show highly significant
+M1-vs-M2 differences that flip direction seed to seed) · 10-class diagnostic
 · ansatz-depth ablation · M1-vs-Long verification · cross-experiment synthesis
 across all four binary grids.
 
 Next (prioritised six-step plan, `logs/FMNIST_LOG.md` §9): save per-image
-predictions for McNemar's test · use the full 2,000-image Fashion-MNIST test
-set · enable deterministic algorithms to shrink the non-determinism floor ·
-pilot a better difficulty ladder before the next grid · [10-class multiclass
-readout now fixed in v10] · run McNemar on the v10 predictions once raw
-result JSONs are available. Also outstanding: Long-faithful arm (b) for all
-three Fashion pairs and for 10-class; v10 raw per-run result JSONs (only a
-summary is in the repo so far, §7 caveat).
+predictions for McNemar's test (done for v10; still needed for the binary
+grids) · use the full 2,000-image Fashion-MNIST test set · enable
+deterministic algorithms on the binary grids · pilot a better difficulty
+ladder before the next Fashion-MNIST grid · **run a locked full-protocol
+10-class confirmation grid** (the current v10 result is feasibility-scale
+only — this is now the top priority, ahead of further class-pair sweeps).
+Also outstanding: Long-faithful arm (b) for all three Fashion pairs and for
+10-class.
