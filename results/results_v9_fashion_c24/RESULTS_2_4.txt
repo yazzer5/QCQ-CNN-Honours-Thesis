@@ -1,0 +1,49 @@
+
+Model   n seeds  test acc mean      std  best val mean  gap@best  best ep  stop ep  seeds
+--------------------------------------------------------------------------------------------------------
+M1            5         0.8730   0.0080         0.8909    +6.96p     19.8     40.6  [42, 43, 44, 45, 46]
+M2            5         0.8700   0.0119         0.8963    +7.90p     20.2     39.0  [42, 43, 44, 45, 46]
+M3            5         0.8842   0.0080         0.9014    +4.80p     30.4     41.8  [42, 43, 44, 45, 46]
+M4            5         0.8718   0.0040         0.8885    +3.54p     40.6     50.6  [42, 43, 44, 45, 46]
+  gap@best = train accuracy - test accuracy, BOTH measured on the
+  restored best-validation checkpoint in eval mode (v8+). Comparable
+  to v8 (2,6) gap@best numbers; not comparable to any pre-v8 'gap'.
+
+Attribution deltas — paired two-sample t-test across seeds
+(Thesis A Sec 5.3. Paired because every model uses the same five seeds.)
+
+  pair       Δ mean acc        t  df         p   isolates
+  ----------------------------------------------------------------------------
+  M2-M1         -0.0030   -0.494   4    0.6473   front-end trainability (trainable Circuit 4 vs frozen random)  [ns]
+  M2-M3         -0.0142   -1.686   4    0.1671   quantum back-end       (QNN head vs classical head)  [ns]
+  M3-M4         +0.0124    3.631   4    0.0221   quantum front-end      (Circuit 4 vs bilinear resize)  [*, uncorrected]
+
+  * p<0.05  ** p<0.01  *** p<0.001  ns = not significant
+  With n=5 seeds (df=4) this test detects only large effects. A 'ns'
+  result means the data does not support a difference -- it is NOT
+  evidence that the architectures are equivalent. The single nominal
+  M3-M4 significance does not survive Holm correction across the three
+  attribution contrasts and sits below its own MDE (see below) — flagged
+  as a marginal, not a confirmed, effect.
+
+Minimum detectable effect (paired, n=5, alpha=0.05, ~80% power)
+  Report this alongside every null. A null bounds the effect; it
+  does not establish equivalence.
+  M2-M1     SD(diff)= 1.36 pp   MDE= 2.26 pp   observed |Δ|= 0.30 pp   BELOW MDE
+  M2-M3     SD(diff)= 1.88 pp   MDE= 3.13 pp   observed |Δ|= 1.42 pp   BELOW MDE
+  M3-M4     SD(diff)= 0.76 pp   MDE= 1.27 pp   observed |Δ|= 1.24 pp   BELOW MDE (marginal, ~98% of MDE)
+
+Generalisation gap@best — paired t-test across seeds
+
+  pair       Δ gap (pp)        t  df         p
+  ----------------------------------------------
+  M2-M1           +0.94    1.625   4    0.1794  [ns]
+  M2-M3           +3.10    4.449   4    0.0113  [*]
+  M3-M4           +1.26    1.972   4    0.1199  [ns]
+  M1-M4           +3.42    3.794   4    0.0192  [*]
+  M2-M4           +4.36    6.644   4    0.0027  [**]
+
+No protocol warnings. All runs comparable. Integrity gate: 20/20 clean
+(0 inversions, class pair [2,4] confirmed, code_version=v9, n_params
+1604/1610/1600/1594 for M1/M2/M3/M4, FULL PROTOCOL — no smoke/reduced-scale
+runs in the grid).

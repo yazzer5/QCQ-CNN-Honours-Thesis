@@ -1,0 +1,43 @@
+
+Model   n seeds  test acc mean      std  best val mean  gap@best  best ep  stop ep  seeds
+--------------------------------------------------------------------------------------------------------
+M1            5         0.8570   0.0041         0.8837    +7.31p     13.6     39.0  [42, 43, 44, 45, 46]
+M2            5         0.8674   0.0058         0.8922    +7.90p     20.8     39.0  [42, 43, 44, 45, 46]
+M3            5         0.8770   0.0079         0.9008    +5.97p     32.4     43.4  [42, 43, 44, 45, 46]
+M4            5         0.8700   0.0042         0.8946    +4.61p     36.6     46.6  [42, 43, 44, 45, 46]
+  gap@best = train accuracy - test accuracy, BOTH measured on the
+  restored best-validation checkpoint in eval mode (v8+). Not
+  comparable to any pre-v8 'gap' number.
+
+Attribution deltas — paired two-sample t-test across seeds
+(Thesis A Sec 5.3. Paired because every model uses the same five seeds.)
+
+  pair       Δ mean acc        t  df         p   isolates
+  ----------------------------------------------------------------------------
+  M2-M1         +0.0104    2.395   4    0.0748   front-end trainability (trainable Circuit 4 vs frozen random)  [ns]
+  M2-M3         -0.0096   -2.044   4    0.1104   quantum back-end       (QNN head vs classical head)  [ns]
+  M3-M4         +0.0070    1.357   4    0.2462   quantum front-end      (Circuit 4 vs bilinear resize)  [ns]
+
+  * p<0.05  ** p<0.01  *** p<0.001  ns = not significant
+  With n=5 seeds (df=4) this test detects only large effects. A 'ns'
+  result means the data does not support a difference -- it is NOT
+  evidence that the architectures are equivalent.
+
+Minimum detectable effect (paired, n=5, alpha=0.05, ~80% power)
+  Report this alongside every null. A null bounds the effect; it
+  does not establish equivalence.
+  M2-M1     SD(diff)= 0.97 pp   MDE= 1.61 pp   observed |Δ|= 1.04 pp   BELOW MDE
+  M2-M3     SD(diff)= 1.05 pp   MDE= 1.75 pp   observed |Δ|= 0.96 pp   BELOW MDE
+  M3-M4     SD(diff)= 1.15 pp   MDE= 1.92 pp   observed |Δ|= 0.70 pp   BELOW MDE
+
+Generalisation gap@best — paired t-test across seeds
+
+  pair       Δ gap (pp)        t  df         p
+  ----------------------------------------------
+  M2-M1           +0.59    0.835   4    0.4504  [ns]
+  M2-M3           +1.93    2.887   4    0.0447  [*]
+  M3-M4           +1.36    3.199   4    0.0329  [*]
+  M1-M4           +2.70    4.908   4    0.0080  [**]
+  M2-M4           +3.29    5.952   4    0.0040  [**]
+
+No protocol warnings. All runs comparable.
