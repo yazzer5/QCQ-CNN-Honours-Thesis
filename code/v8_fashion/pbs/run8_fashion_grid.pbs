@@ -1,0 +1,100 @@
+#!/bin/bash
+#PBS -N v8_fash
+#PBS -P wa66
+#PBS -q gpuvolta
+#PBS -l walltime=01:00:00
+#PBS -l ncpus=12
+#PBS -l ngpus=1
+#PBS -l mem=32GB
+#PBS -l jobfs=10GB
+#PBS -l storage=gdata/wa66
+#PBS -v MODEL=M2,DATASET=fashion_mnist,SEED=42,CLASSPAIR=2_6
+
+# ═══════════════════════════════════════════════════════════════════════
+# FASHION-MNIST GRID — v8. Arm (a), iso-parametric. Selectable class pair.
+#
+# Protocol is UNCHANGED from v7 and therefore from the completed 0,6 grid:
+#   5000 / 1250 / 1000, batch 32, AdamW lr 1e-3 wd 1e-4, dropout 0.0,
+#   max_epochs 100, patience 10, min_epochs 30 (M1/M2/M3), qnn_backend torch,
+#   seeds {42..46}, alpha=0.
+#
+# The ONLY v8 change is that the generalisation gap is now measured on the
+# restored best-validation checkpoint (train_gadi.py, gap@best block).
+# Accuracy numbers are directly comparable to the v7 0,6 grid.
+#
+# DIFFICULTY GRADIENT (M4 baseline, seed 42, single seed each -- pilot):
+#   0,6  T-shirt/top vs Shirt    84.20%   rank 1, hardest   [DONE, v7]
+#   2,6  Pullover    vs Shirt    87.10%   rank 2            <-- THIS RUN
+#   2,4  Pullover    vs Coat     88.40%   rank 3
+# The pilot ranking of 2,6 vs 2,4 is 1.3 pp apart, inside the ~1.16 pp
+# per-run SE, so it may not survive five seeds. Report the measured
+# 5-seed ordering, not the pilot ordering.
+#
+# STATISTICAL POWER: binomial noise scales with p(1-p). At ~87% the per-run
+# SE is ~1.06 pp, so the MDE across 5 seeds is roughly 1.6-1.8 pp -- similar
+# to 0,6, and slightly better only because accuracy is higher. Any null here
+# must be reported WITH the MDE. A null is a power statement, never
+# evidence of equivalence.
+#
+# Results land in results_v8_fashion_c<ab>/ so pairs and versions never mix.
+# ═══════════════════════════════════════════════════════════════════════
+
+set -e
+cd "$PBS_O_WORKDIR/.."
+echo "PWD=$(pwd)"
+ls -l train_gadi.py quanv_torch.py qnn_torch.py || { echo "FATAL: repo root not found"; exit 1; }
+
+module load cuda/11.7.0
+source /g/data/wa66/yh2481/miniconda3/etc/profile.d/conda.sh
+conda activate qcqcnn
+export PYTHONPATH=""
+
+# PBS -v is a COMMA-separated list, so passing CLASSES=2,6 through qsub
+# parses as CLASSES=2 plus a stray variable "6" (v7 defect 4.1). The pair is
+# passed as CLASSPAIR=2_6 and expanded here.
+CLASSES="${CLASSPAIR//_/,}"
+CTAG="${CLASSPAIR//_/}"
+
+echo "=== Job start: $(date) ==="
+echo "MODEL=$MODEL DATASET=$DATASET SEED=$SEED CLASSES=$CLASSES (FULL PROTOCOL) [v8]"
+
+# Compute nodes have NO INTERNET. Verify the staged archives, extract them so
+# torchvision never enters its download path, and prove the datasets open
+# with download=False. Idempotent and ~2 s once extracted.
+python scripts/preflight_data.py --data_root ./data --classes "$CLASSES" \
+    || { echo "FATAL: data preflight failed -- not training"; exit 1; }
+
+nvidia-smi --query-gpu=name,memory.total --format=csv
+
+nvidia-smi --query-gpu=timestamp,utilization.gpu,memory.used \
+    --format=csv -l 2 > gpu_util_v8f_${MODEL}_${DATASET}_s${SEED}.csv &
+NVSMI_PID=$!
+
+set +e
+python train_gadi.py \
+    --model "$MODEL" \
+    --dataset "$DATASET" \
+    --classes "$CLASSES" \
+    --seed "$SEED" \
+    --noise_alpha 0.0 \
+    --output_dir ./results_v8_fashion_c${CTAG} \
+    --data_root ./data \
+    --checkpoint_dir ./ckpt_v8_fashion_c${CTAG} \
+    --time_budget_hours 0.85
+RC=$?
+set -e
+
+kill $NVSMI_PID 2>/dev/null || true
+
+if [ $RC -eq 99 ]; then
+    echo "Time budget reached -- submitting continuation link."
+    echo "  (continuing: MODEL=$MODEL DATASET=$DATASET SEED=$SEED CLASSPAIR=$CLASSPAIR)"
+    cd "$PBS_O_WORKDIR"
+    # Resubmit THIS script and carry CLASSPAIR through. v6's bug was
+    # resubmitting the MNIST script and dropping the pair entirely.
+    qsub -v MODEL=$MODEL,DATASET=$DATASET,SEED=$SEED,CLASSPAIR=$CLASSPAIR run8_fashion_grid.pbs
+    exit 0
+fi
+
+echo "=== Job end: $(date) rc=$RC ==="
+exit $RC
