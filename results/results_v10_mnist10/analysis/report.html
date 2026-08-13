@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>MNIST 10-class (v10) — Analysis</title>
+<style>
+  body { font-family: -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+         max-width: 960px; margin: 40px auto; padding: 0 20px; color: #1a1a1a; }
+  h1 { font-size: 1.6em; border-bottom: 2px solid #333; padding-bottom: 8px; }
+  h2 { font-size: 1.2em; margin-top: 2em; color: #333; }
+  table { border-collapse: collapse; width: 100%; margin: 1em 0; }
+  th, td { border: 1px solid #ccc; padding: 8px 12px; text-align: right; }
+  th { background: #f2f2f2; text-align: right; }
+  td:first-child, th:first-child { text-align: left; }
+  .note { background: #f7f7f2; border-left: 4px solid #999; padding: 10px 16px; margin: 1em 0; }
+  .warn { background: #fdf3ec; border-left: 4px solid #c9772e; padding: 10px 16px; margin: 1em 0; }
+  .plot { margin: 1.5em 0; text-align: center; }
+  .plot img { max-width: 100%; border: 1px solid #ddd; border-radius: 4px; }
+  footer { margin-top: 3em; color: #888; font-size: 0.85em; border-top: 1px solid #ddd; padding-top: 10px; }
+</style>
+</head>
+<body>
+  <h1>MNIST 10-class grid (v10)</h1>
+  <div class="note">
+    4 models × 5 seeds, softmax cross-entropy loss (amended from BCE before
+    the grid ran — see <code>docs/AMENDMENT_2026-08-13_loss.md</code>).
+    Multiclass-padded parameter budget: M1 1640 / M2 1646 / M3 1649 / M4 1643
+    (spread 0.55%). Not directly comparable in parameter count to the binary
+    grids (v6–v9), which used 1604/1610/1600/1594.
+  </div>
+  <div class="warn">
+    <strong>Data provenance:</strong> raw per-run <code>result_M*.json</code>
+    files were not included in the upload that added this grid to the repo.
+    The table and figures below come from the fallback constants embedded in
+    <code>code/v10_mnist10/scripts/plot_v10_results.py</code> (dated
+    2026-08-13), which match <code>logs/MNIST_LOG.md</code> §4b. See
+    <code>results_v10_mnist10/summary_v10.json</code>.
+  </div>
+
+  <h2>Summary — test accuracy (n=5 seeds each)</h2>
+  <table>
+    <tr><th>Model</th><th>Mean (%)</th><th>SD (pp)</th><th>Seed spread (pp)</th></tr>
+    <tr><td>M1 (frozen quanv + QNN head)</td><td>70.59</td><td>5.17</td><td>12.0</td></tr>
+    <tr><td>M2 (trainable Circuit 4 + QNN head)</td><td>70.92</td><td>5.40</td><td>15.0</td></tr>
+    <tr><td>M3 (trainable Circuit 4 + classical head)</td><td>81.96</td><td>2.33</td><td>6.2</td></tr>
+    <tr><td>M4 (bilinear resize + classical head)</td><td>82.41</td><td>1.98</td><td>5.0</td></tr>
+  </table>
+
+  <h2>Headline findings</h2>
+  <ul>
+    <li><strong>M2 − M1 = +0.33 pp, p = 0.94, MDE = 16.08 pp</strong> — far underpowered
+    relative to the binary grids (MDE 1.4–2.8 pp). Per-seed differences swing from
+    −11.60 pp to +13.05 pp with no consistent sign.</li>
+    <li><strong>QNN-head models are highly seed-unstable at 10 classes</strong> (12–15 pp
+    spread) vs classical-head models (5–6 pp). This instability, not the M2−M1 sign,
+    is the primary finding of this grid.</li>
+    <li><strong>Classical head beats QNN head by 11.4 pp</strong> (Welch p = 2.2×10⁻⁵).
+    M3 − M4 = −0.45 pp, MDE = 1.38 pp — the quantum front-end contributes nothing
+    detectable at this power level.</li>
+    <li>The +6.4 pp diagnostic that motivated running this grid was a single seed
+    (seed 42 only) and sits well inside the ±13 pp range observed once all five
+    seeds were run — very likely noise, not signal.</li>
+  </ul>
+
+  <h2>Plots</h2>
+  <div class="plot"><img src="plots/v10_fig1_seed_spread.png" alt="seed spread"></div>
+  <div class="plot"><img src="plots/v10_fig2_paired_differences.png" alt="paired differences"></div>
+  <div class="plot"><img src="plots/v10_fig3_effect_vs_mde.png" alt="effect vs MDE"></div>
+  <div class="plot"><img src="plots/v10_fig4_head_comparison.png" alt="head comparison"></div>
+
+  <footer>See <code>logs/MNIST_LOG.md</code> §4b for the full write-up and
+  <code>docs/PREREGISTRATION_MNIST10.md</code> for the pre-registered
+  predictions and their scored outcomes. Part of the QCQ-CNN Honours thesis
+  project (Yasser, UNSW).</footer>
+</body>
+</html>

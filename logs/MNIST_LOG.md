@@ -186,6 +186,88 @@ the thesis spec.
 
 ---
 
+## 4b. Full 10-class MNIST grid, code v10 (2026-08-13) — complete (20/20)
+
+The single-seed diagnostic in §4 (+6.4 pp for M2 over M1) motivated running
+the real thing: 4 models × 5 seeds properly, not a truncated single-seed
+comparison. Code v10 is v9 plus: a 3-observable QNN readout (`<Z0>`, `<Z1>`,
+`<Z0Z1>`, same circuit, zero extra circuit parameters), an iso-parametric
+re-pad for 10 classes (M1 1640 / M2 1646 / M3 1649 / M4 1643, spread 0.55% —
+**not** the binary 1604/1610/1600/1594), `--deterministic`, and
+`--save_predictions` for McNemar's test. Full changelog:
+`docs/CHANGELOG_v10.md`.
+
+**Loss function amendment, made before the grid ran:** the pre-registration
+(`docs/PREREGISTRATION_MNIST10.md`) specified BCE-on-one-hot retained for
+continuity with v6–v9. A smoke test triggered the convergence-at-cap
+criterion described in `docs/AMENDMENT_2026-08-13_loss.md` — at 10 classes,
+BCE drives 9 of 10 logits toward a strongly negative target every step, and
+that pressure falls asymmetrically on M1/M2's bounded QNN outputs. The grid
+switched to softmax cross-entropy before any full run was submitted. Disclose
+this in the thesis: it is a genuine protocol deviation from v6–v9, made for a
+documented and pre-registered reason, not a post-hoc fix.
+
+### Results
+
+| Model | Front-end | Head | Test acc | SD | Seed spread |
+|---|---|---|---|---|---|
+| M1 | frozen Henderson | QNN | 70.59% | 5.17 pp | 12.0 pp |
+| M2 | trainable Circuit 4 | QNN | 70.92% | 5.40 pp | 15.0 pp |
+| M3 | trainable Circuit 4 | classical | 81.96% | 2.33 pp | 6.2 pp |
+| M4 | bilinear resize | classical | 82.41% | 1.98 pp | 5.0 pp |
+
+Per-seed M1/M2 (seeds 42–46): M1 = 64.70, 74.35, 71.15, 76.70, 66.05. M2 =
+77.75, 62.75, 72.55, 70.30, 71.25.
+
+**Primary contrast, M2 − M1 = +0.33 pp, p = 0.94, SD(diff) = 9.67 pp, MDE =
+16.08 pp.** Far underpowered relative to every binary grid (MDE 1.4–2.8 pp).
+Per-seed differences: +13.05, −11.60, +1.40, −6.40, +5.20 — sign flips across
+seeds, no consistent direction.
+
+**QNN-head models are highly seed-unstable at 10 classes** (12–15 pp spread)
+while classical-head models are not (5–6 pp). This is the primary finding of
+this grid — a substantive architectural result, not noise, and it is the
+reason the primary contrast is unresolvable at 5 seeds regardless of the true
+effect size.
+
+**Classical head beats QNN head by 11.4 pp** (Welch p = 2.2×10⁻⁵) — the same
+grouped-contrast pattern seen at every Fashion-MNIST pair, now much larger.
+**M3 − M4 = −0.45 pp, MDE = 1.38 pp** — null; the quantum front-end
+contributes nothing detectable at this power level, reversing the sign of
+the one nominally-significant attribution contrast in the project (+1.24 pp
+at Fashion 2,4, itself flagged as marginal there).
+
+**The diagnostic that motivated this grid does not hold up.** The +6.4 pp
+single-seed result from §4 sits well inside the ±13 pp range observed once
+all five seeds ran — very likely noise, not signal. This is the second time
+in the project a single-seed or single-configuration result motivated a
+follow-up experiment that then failed to reproduce at proper power (the
+first being the withdrawn gap metric, `FMNIST_LOG.md` §6.1); worth naming as
+a pattern when writing up methodology.
+
+### Pre-registered predictions — scored
+
+Full scoring with commentary in `docs/PREREGISTRATION_MNIST10.md` §Outcome.
+Summary: of 5 predictions, 1 falsified outright (M2−M1 magnitude/significance),
+1 falsified on sign (M3−M4), 1 mostly held (accuracy range), 2 not yet
+evaluated (McNemar, determinism check — both require the raw per-run JSONs,
+which are not yet in this repository, see note below).
+
+### Data provenance note
+
+This section, `docs/PREREGISTRATION_MNIST10.md`'s outcome, and
+`results/results_v10_mnist10/` were built from the code, docs, and four
+summary figures uploaded on 2026-08-14 — **not from raw `result_M*.json`
+files**, which were not included in that upload. The per-seed numbers above
+are the fallback constants in `code/v10_mnist10/scripts/plot_v10_results.py`
+(dated 2026-08-13), cross-checked against this log's own prior record and
+consistent to 2 decimal places. If the raw JSONs become available: verify
+this table directly, run `scripts/mcnemar.py` and `scripts/mcnemar_seedwise.py`
+for prediction 2, and check the job logs for the `--deterministic` flag
+status for prediction 5.
+
+---
+
 ## 5. Figures
 
 | file | content |
@@ -195,6 +277,17 @@ the thesis spec.
 
 Show figB alongside figA so the ~95% classical bars are not read as evidence
 against quantum layers.
+
+**v10 grid figures (2026-08-13):** `code/v10_mnist10/figures/` and mirrored
+at `results/results_v10_mnist10/analysis/plots/`, with a standalone report at
+`results/results_v10_mnist10/analysis/report.html`:
+
+| file | content |
+|---|---|
+| `v10_fig1_seed_spread.png` | every seed, every model — the headline figure showing QNN-head instability |
+| `v10_fig2_paired_differences.png` | per-seed paired differences for each attribution contrast |
+| `v10_fig3_effect_vs_mde.png` | observed effect size vs MDE for each contrast |
+| `v10_fig4_head_comparison.png` | grouped QNN-head vs classical-head comparison |
 
 ---
 
@@ -397,6 +490,12 @@ p = 0.975.
 - **M1 vs Long verification COMPLETE (§8) — M1 matches, reps discrepancy
   measured and immaterial**
 - **reps=1 vs reps=2 ablation complete** — 20 runs, null (§8.4)
+- **Fashion-MNIST 0,6 / 2,6 / 2,4 grids complete** — 60 runs, all clean
+  (`FMNIST_LOG.md`)
+- **Full MNIST 10-class grid complete (v10) — 20/20 clean** (§4b): the primary
+  M2−M1 contrast is null at MDE 16.08 pp; QNN-head models show 12–15 pp
+  seed-to-seed instability. The single-seed +6.4 pp diagnostic that motivated
+  this grid did not reproduce.
 
 ### Established
 - MNIST 3-vs-5 is saturated: 0.08 pp spread against ~0.25–0.40 pp resolution.
@@ -410,8 +509,15 @@ p = 0.975.
   10-class accuracy.
 - The single-scalar readout is a real architectural limit, visible independently
   in defect 06 and in the 10-class diagnostic (7–8/10 classes reachable).
+- **QNN-head models are seed-unstable at 10 classes in a way classical-head
+  models are not** (12–15 pp vs 5–6 pp spread, §4b). This, not the M2−M1
+  point estimate, is the strongest 10-class finding and the main obstacle to
+  resolving the central hypothesis there.
+- Across all binary and 10-class grids together, every M2−M1 point estimate
+  has sat inside its own MDE. The hypothesis remains open on power grounds,
+  not refuted.
 
-### NEXT EXPERIMENTS (agreed with supervisor 2026-08-03)
+### NEXT EXPERIMENTS (agreed with supervisor 2026-08-03; updated 2026-08-14)
 
 Two arms per dataset. **Arm (a) is the controlled experiment; arm (b) is the
 replication.** They answer different questions and neither replaces the other.
@@ -433,24 +539,21 @@ epochs, no validation split, test the final model.
 | # | Experiment | Runs | Notes |
 |---|---|---|---|
 | 1 | FMNIST **0,6** arm (a) | — | ✅ DONE (`FMNIST_LOG.md` §4) |
-| 2 | FMNIST **2,6** arm (a) | 20 | `./submit_run7_fashion.sh 2,6` |
-| 3 | FMNIST **2,4** arm (a) | 20 | `./submit_run7_fashion.sh 2,4` |
-| 4 | FMNIST 0,6 / 2,6 / 2,4 arm (b) | 60 | Long-faithful config |
-| 5 | MNIST 10-class arm (a) | 20 | needs multiclass fix first |
-| 6 | MNIST 10-class arm (b) | 20 | needs multiclass fix first |
+| 2 | FMNIST **2,6** arm (a) | — | ✅ DONE (`FMNIST_LOG.md` §5, v8) |
+| 3 | FMNIST **2,4** arm (a) | — | ✅ DONE (`FMNIST_LOG.md` §5, v9) |
+| 4 | FMNIST 0,6 / 2,6 / 2,4 arm (b) | 60 | Long-faithful config — not started |
+| 5 | MNIST 10-class arm (a) | — | ✅ DONE (§4b, v10) — null at MDE 16 pp |
+| 6 | MNIST 10-class arm (b) | 20 | needs the arm (b) config above; not started |
 
-**Before experiments 5 and 6 — two decisions:**
+Priority now follows the six-step plan in `FMNIST_LOG.md` §9: per-image
+predictions + McNemar for the completed 10-class grid comes before spending
+more compute on arm (b), since McNemar on the existing v10 predictions may
+resolve the primary contrast more cheaply than more seeds would.
 
-*(i) How to make M1/M2 genuinely multiclass.* The diagnostic (§4) shows the fix
-is a wider readout. Three observables reached 66.5% (M1) and 72.9% (M2, still
-rising at the epoch cap — **re-run with `EPOCHS=200` to get its converged
-value**). More observables or more qubits may be needed to be competitive with
-~95% classical.
-
-*(ii) The iso-parametric bound reopens.* M3/M4's classical heads widen to 650
-params; a 3-observable QNN head lands near 176. Either re-pad all four to a new
-matched budget, or state the confound explicitly. **Decide before spending 20
-runs, not after.**
+**Decisions already made for the 10-class grid (v10), recorded for arm (b)
+and any re-run:** wider QNN readout (3 observables, zero extra circuit
+parameters) and a re-padded iso-parametric budget (M1 1640 / M2 1646 / M3
+1649 / M4 1643, spread 0.55%) — see §4b and `docs/CHANGELOG_v10.md`.
 
 **Caution for arm (b):** batch size 1 with 100 flat epochs is dramatically
 slower — let the smoke test measure it before committing. And dropout 0.5 plus

@@ -83,6 +83,8 @@ code/
   v5_validation/     correctness debugging; three silent defects found here
   v6_mnist/          MNIST 3-vs-5 grid; batched torch simulation (214-803x)
   v7_fashion/        Fashion-MNIST; offline data handling; two launch bugs fixed
+  v10_mnist10/       full 10-class MNIST grid; 3-observable readout, re-padded
+                     iso-parametric budget, --deterministic, --save_predictions
   diagnostics/
     smoke10_mnist/   10-class MNIST diagnostic (readout width)
     reps_ablation/   reps=1 vs reps=2 ansatz depth ablation
@@ -92,11 +94,13 @@ results/
   results_v7_fashion_c06/            20 runs — Fashion 0,6
   results_v8_fashion_c26/            20 runs — Fashion 2,6 (gap@best metric fix)
   results_v9_fashion_c24/            20 runs — Fashion 2,4 (closes arm-a sequence)
+  results_v10_mnist10/               20 runs — full 10-class grid (summary only,
+                                      raw JSONs not yet in repo — see note below)
   results_reps_fashion_mnist_c06/    20 runs — ansatz depth ablation
   results_smoke10_mnist10/            6 runs — 10-class diagnostic
   results_v5_*/                      reduced-scale validation
   results_v*/analysis/               plots + standalone HTML report, per experiment
-  analysis_index.html                links all four per-experiment reports
+  analysis_index.html                links all five per-experiment reports
   job_logs/                          PBS stdout/stderr — full epoch histories
   gpu_traces/                        GPU utilisation CSVs
 
@@ -154,13 +158,16 @@ Hardware used: NCI Gadi, `gpuvolta` queue (Tesla V100-SXM2-32GB), project
 ## Status
 
 Complete: MNIST 3-vs-5 grid · Fashion-MNIST 0,6 / 2,6 / 2,4 grids (all of arm
-(a), 80 runs total) · 10-class diagnostic · ansatz-depth ablation · M1-vs-Long
-verification · cross-experiment synthesis across all four grids.
+(a), 80 runs total) · full MNIST 10-class grid (v10, arm (a), null at MDE
+16 pp with a notable QNN-head seed-instability finding) · 10-class diagnostic
+· ansatz-depth ablation · M1-vs-Long verification · cross-experiment synthesis
+across all four binary grids.
 
 Next (prioritised six-step plan, `logs/FMNIST_LOG.md` §9): save per-image
 predictions for McNemar's test · use the full 2,000-image Fashion-MNIST test
 set · enable deterministic algorithms to shrink the non-determinism floor ·
-pilot a better difficulty ladder before the next grid · fix the 10-class
-multiclass readout · run 10-class MNIST properly (diagnostic already shows
-M2−M1 ≈ +6.4 pp, ~3× any binary MDE). Also outstanding: Long-faithful arm (b)
-for all three pairs; v8/v9 code files not yet checked into `code/`.
+pilot a better difficulty ladder before the next grid · [10-class multiclass
+readout now fixed in v10] · run McNemar on the v10 predictions once raw
+result JSONs are available. Also outstanding: Long-faithful arm (b) for all
+three Fashion pairs and for 10-class; v8/v9/v10 code partially checked into
+`code/` (v10 code is in; v8/v9 code files still missing, only results).

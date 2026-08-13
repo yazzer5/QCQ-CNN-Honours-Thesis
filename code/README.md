@@ -27,6 +27,21 @@ Fashion-MNIST. Two silent launch bugs fixed: `qsub -v CLASSES=0,6` parsed as
 time-budget continuation branch silently reverted to MNIST. Added offline data
 handling for compute nodes with no internet. See `docs/CHANGELOG_v7.md`.
 
+*(v8 and v9 are v7 with a version tag and, for v8+, a corrected gap@best
+metric — see `docs/CHANGELOG_v8.md`. Their code files are not yet checked
+into this repo; only results, job logs, and docs have been added so far.)*
+
+## v10_mnist10
+Full 10-class MNIST grid. v9 plus: a 3-observable QNN readout (`<Z0>`, `<Z1>`,
+`<Z0Z1>`, same circuit, zero extra circuit parameters), an iso-parametric
+re-pad for 10 classes (M1 1640 / M2 1646 / M3 1649 / M4 1643, spread 0.55% —
+**not** the binary parameter counts), `--deterministic`, and
+`--save_predictions` for McNemar's test. Loss function amended from BCE to
+cross-entropy before the grid ran (`docs/AMENDMENT_2026-08-13_loss.md`). See
+`docs/CHANGELOG_v10.md` and `logs/MNIST_LOG.md` §4b. **Raw per-run result
+JSONs for this grid are not yet in the repo** — only code, docs, and the four
+summary figures; see `results/results_v10_mnist10/summary_v10.json`.
+
 ## diagnostics/smoke10_mnist
 10-class MNIST across all four models, at two QNN readout widths. Established
 that the back-end is measurement-limited. **Not iso-parametric** — read
