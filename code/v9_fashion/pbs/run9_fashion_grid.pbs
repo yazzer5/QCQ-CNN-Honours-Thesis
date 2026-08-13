@@ -1,0 +1,107 @@
+#!/bin/bash
+#PBS -N v9_fash
+#PBS -P wa66
+#PBS -q gpuvolta
+#PBS -l walltime=01:00:00
+#PBS -l ncpus=12
+#PBS -l ngpus=1
+#PBS -l mem=32GB
+#PBS -l jobfs=10GB
+#PBS -l storage=gdata/wa66
+#PBS -v MODEL=M2,DATASET=fashion_mnist,SEED=42,CLASSPAIR=2_4
+
+# ═══════════════════════════════════════════════════════════════════════
+# FASHION-MNIST GRID — v9. Arm (a), iso-parametric. Selectable class pair.
+#
+# v9 runs pair 2,4 (Pullover vs Coat) -- experiment 3 of 3 in the difficulty
+# gradient. Code is IDENTICAL to v8; only the version tag differs, so the
+# 0,6 (v7), 2,6 (v8) and 2,4 (v9) grids are directly comparable.
+#
+# Protocol is UNCHANGED from v7/v8 and therefore from both completed grids:
+#   5000 / 1250 / 1000, batch 32, AdamW lr 1e-3 wd 1e-4, dropout 0.0,
+#   max_epochs 100, patience 10, min_epochs 30 (M1/M2/M3), qnn_backend torch,
+#   seeds {42..46}, alpha=0.
+#
+# The gap is measured on the restored best-validation checkpoint (v8+).
+#
+# DIFFICULTY GRADIENT — measured M4 means (5 seeds), not pilots:
+#   0,6  T-shirt/top vs Shirt    84.20%   rank 1, hardest   [DONE, v7]
+#   2,6  Pullover    vs Shirt    87.00%   rank 2            [DONE, v8]
+#   2,4  Pullover    vs Coat     88.40%*  rank 3            <-- THIS RUN
+#   *2,4 figure is still a single-seed pilot; this grid replaces it.
+# The 2,6 M4 mean (87.00%) landed within 0.1 pp of its pilot (87.10%), so
+# the pilot ranking has held so far. It is 1.4 pp from the 2,4 pilot, which
+# is inside the ~1.1 pp per-run SE -- the 2,6/2,4 ordering may still not
+# survive. Report the measured 5-seed ordering, not the pilot ordering.
+#
+# NOTE ON 2,6: M3 (87.70%) came out ABOVE M4 (87.00%), reversing the 0,6
+# ordering where M4 was best. Do not assume M4 wins here.
+#
+# STATISTICAL POWER: binomial noise scales with p(1-p). At ~88% the per-run
+# SE is ~1.03 pp, so the MDE across 5 seeds is roughly 1.6-1.9 pp -- the
+# same ballpark as 0,6 and 2,6, where all three attribution contrasts came
+# in BELOW their MDE. Expect the same here. Any null must be reported WITH
+# the MDE. A null is a power statement, never evidence of equivalence.
+#
+# Results land in results_v9_fashion_c<ab>/ so pairs and versions never mix.
+# ═══════════════════════════════════════════════════════════════════════
+
+set -e
+cd "$PBS_O_WORKDIR/.."
+echo "PWD=$(pwd)"
+ls -l train_gadi.py quanv_torch.py qnn_torch.py || { echo "FATAL: repo root not found"; exit 1; }
+
+module load cuda/11.7.0
+source /g/data/wa66/yh2481/miniconda3/etc/profile.d/conda.sh
+conda activate qcqcnn
+export PYTHONPATH=""
+
+# PBS -v is a COMMA-separated list, so passing CLASSES=2,6 through qsub
+# parses as CLASSES=2 plus a stray variable "6" (v7 defect 4.1). The pair is
+# passed as CLASSPAIR=2_6 and expanded here.
+CLASSES="${CLASSPAIR//_/,}"
+CTAG="${CLASSPAIR//_/}"
+
+echo "=== Job start: $(date) ==="
+echo "MODEL=$MODEL DATASET=$DATASET SEED=$SEED CLASSES=$CLASSES (FULL PROTOCOL) [v9]"
+
+# Compute nodes have NO INTERNET. Verify the staged archives, extract them so
+# torchvision never enters its download path, and prove the datasets open
+# with download=False. Idempotent and ~2 s once extracted.
+python scripts/preflight_data.py --data_root ./data --classes "$CLASSES" \
+    || { echo "FATAL: data preflight failed -- not training"; exit 1; }
+
+nvidia-smi --query-gpu=name,memory.total --format=csv
+
+nvidia-smi --query-gpu=timestamp,utilization.gpu,memory.used \
+    --format=csv -l 2 > gpu_util_v9f_${MODEL}_${DATASET}_s${SEED}.csv &
+NVSMI_PID=$!
+
+set +e
+python train_gadi.py \
+    --model "$MODEL" \
+    --dataset "$DATASET" \
+    --classes "$CLASSES" \
+    --seed "$SEED" \
+    --noise_alpha 0.0 \
+    --output_dir ./results_v9_fashion_c${CTAG} \
+    --data_root ./data \
+    --checkpoint_dir ./ckpt_v9_fashion_c${CTAG} \
+    --time_budget_hours 0.85
+RC=$?
+set -e
+
+kill $NVSMI_PID 2>/dev/null || true
+
+if [ $RC -eq 99 ]; then
+    echo "Time budget reached -- submitting continuation link."
+    echo "  (continuing: MODEL=$MODEL DATASET=$DATASET SEED=$SEED CLASSPAIR=$CLASSPAIR)"
+    cd "$PBS_O_WORKDIR"
+    # Resubmit THIS script and carry CLASSPAIR through. v6's bug was
+    # resubmitting the MNIST script and dropping the pair entirely.
+    qsub -v MODEL=$MODEL,DATASET=$DATASET,SEED=$SEED,CLASSPAIR=$CLASSPAIR run9_fashion_grid.pbs
+    exit 0
+fi
+
+echo "=== Job end: $(date) rc=$RC ==="
+exit $RC
