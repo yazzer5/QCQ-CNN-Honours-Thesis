@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>MNIST 3 vs 5 (v6) — Analysis</title>
+<style>
+  body { font-family: -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+          max-width: 960px; margin: 40px auto; padding: 0 20px; color: #1a1a1a; }
+  h1 { font-size: 1.6em; border-bottom: 2px solid #333; padding-bottom: 8px; }
+  h2 { font-size: 1.2em; margin-top: 2em; color: #333; }
+  table { border-collapse: collapse; width: 100%; margin: 1em 0; }
+  th, td { border: 1px solid #ccc; padding: 8px 12px; text-align: right; }
+  th { background: #f2f2f2; text-align: right; }
+  td:first-child, th:first-child { text-align: left; }
+  .note { background: #f7f7f2; border-left: 4px solid #999; padding: 10px 16px; margin: 1em 0; }
+  .plot { margin: 1.5em 0; text-align: center; }
+  .plot img { max-width: 100%; border: 1px solid #ddd; border-radius: 4px; }
+  footer { margin-top: 3em; color: #888; font-size: 0.85em; border-top: 1px solid #ddd; padding-top: 10px; }
+</style>
+</head>
+<body>
+  <h1>MNIST 3 vs 5 (v6)</h1>
+  <div class="note">Ceiling effect — 0.08 pp spread across all four models, uninformative by construction. Included for completeness and as the saturation reference point.</div>
+
+  <h2>Summary — test accuracy, best validation accuracy, gap@best (n=5 seeds each)</h2>
+  <table>
+    <tr><th>Model</th><th>n seeds</th><th>Test acc mean ± std (%)</th>
+        <th>Best val acc (%)</th><th>Gap (pp)</th></tr>
+    
+        <tr>
+          <td>M1 (frozen quanv + QNN head)</td>
+          <td>5</td>
+          <td>99.22 ± 0.26</td>
+          <td>99.54</td>
+          <td>+0.78</td>
+        </tr>
+        <tr>
+          <td>M2 (trainable Circuit 4 + QNN head)</td>
+          <td>5</td>
+          <td>99.18 ± 0.23</td>
+          <td>99.74</td>
+          <td>+0.82</td>
+        </tr>
+        <tr>
+          <td>M3 (trainable Circuit 4 + classical head)</td>
+          <td>5</td>
+          <td>99.18 ± 0.13</td>
+          <td>99.60</td>
+          <td>+0.82</td>
+        </tr>
+        <tr>
+          <td>M4 (bilinear resize + classical head)</td>
+          <td>5</td>
+          <td>99.14 ± 0.21</td>
+          <td>99.46</td>
+          <td>+0.75</td>
+        </tr>
+  </table>
+
+  <h2>Plots</h2>
+  <div class="plot"><img src="plots/accuracy_by_model.png" alt="accuracy_by_model.png"></div>
+<div class="plot"><img src="plots/training_curves.png" alt="training_curves.png"></div>
+
+  <footer>Generated from raw result JSONs in <code>results/results_v6_mnist_3v5/</code>.
+  Part of the QCQ-CNN Honours thesis project (Yasser, UNSW).</footer>
+</body>
+</html>
