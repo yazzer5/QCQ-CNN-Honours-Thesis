@@ -201,7 +201,7 @@ Outcome per pre-registration §7: **"NC3 ≈ 0 (TOST) at α = 1, F not detected 
 
 | Figure | Shows | Finding |
 |---|---|---|
-| D1 `D1_train_under_noise.png` | Per model: accuracy change vs α, trained at α vs trained clean | Matched curves stay inside ±1 pp; clean-trained curves fall from α ≈ 2 (L1). |
+| D1 `D1_train_under_noise.png` | Per model: accuracy change vs α, trained at α vs trained clean; M4 as the no-quantum control | Matched curves stay inside ±1 pp; clean-trained curves fall from α ≈ 2 (L1). M4 is exactly 0 in both arms: all 30 M4 runs give identical predictions at every α, confirming the noise touches only the quantum front-end. |
 | D2 `D2_head_amplification.png` | Deployed loss vs α for M2 (QNN head) and M3 (classical head), same front-end | QNN head loses 7–11 pp more at α = 4 (L3). |
 | D3 `D3_noise_tolerance.png` | Per seed, the α where a clean-trained model first loses 2 pp | Classical head ≈ 8–9× vs QNN head ≈ 2–3× at K = 5; only seed 46's frozen front-end fails below device level (L6). |
 | D4 `D4_seed46.png` | Every seed's deployed curve, M5 and M3 | Seed 46's frozen front-end falls from α = 0.5; trained (M3) seed 46 is normal (L4). |

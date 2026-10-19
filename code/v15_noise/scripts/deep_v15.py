@@ -71,10 +71,10 @@ def save(fig, name):
 
 
 # ---- D1: matched vs deployed cost, per model -----------------------------------------
-fig, axes = plt.subplots(2, 4, figsize=(13, 6.2), sharex=True)
+fig, axes = plt.subplots(2, 5, figsize=(16, 6.2), sharex=True)
 x = np.arange(len(TRAIN_A))
 for i, K in enumerate((5, 10)):
-    for j, M in enumerate(QM):
+    for j, M in enumerate(QM + ["M4"]):
         ax = axes[i][j]
         m = [ci([matched(K, a, M, S) - matched(K, 0, M, S) for S in SEEDS]) for a in TRAIN_A]
         d = [ci([dep(K, M, S, a) - dep(K, M, S, 0) for S in SEEDS]) for a in TRAIN_A]
@@ -88,9 +88,13 @@ for i, K in enumerate((5, 10)):
         ax.set_title(("%s\n%s" % (NAME[M], kt(K))) if i == 0 else kt(K), loc="left", fontsize=8.5)
         if j == 0: ax.set_ylabel("accuracy change vs alpha=0 (pp)")
         if i == 1: ax.set_xlabel("noise alpha")
+        if M == "M4":
+            ax.set_ylim(-2, 2)
+            ax.text(0.5, 0.18, "no quantum front-end:\nnoise has nothing to act on\n(all predictions identical at every alpha)",
+                    transform=ax.transAxes, ha="center", fontsize=7.5, color=INK2)
 axes[0][0].legend(fontsize=7.5, loc="lower left")
 fig.suptitle("D1. Training under the noise removes its cost: matched curves sit on 0 (grey = +/-1 pp), "
-             "clean-trained curves fall", x=0.01, ha="left", fontsize=11)
+             "clean-trained curves fall; M4 is the no-quantum control", x=0.01, ha="left", fontsize=11)
 fig.tight_layout(); save(fig, "D1_train_under_noise.png")
 
 # ---- D2: head amplification -----------------------------------------------------------
