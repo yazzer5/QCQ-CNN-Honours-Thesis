@@ -687,3 +687,69 @@ continuations.
   confounded by circuit type.
 
 Figures: `results/results_v135/analysis/plots_deep/` (D1–D8); lead with D2 and D4.
+
+---
+
+## 11. v15: IBM-calibrated noise on the quantum front-end (2026-10-17 → 10-18)
+
+> **Repo gap:** v14 (low data) ran 2026-10-15 → 10-17 and is not yet in this repo.
+> v15 reuses v13 (M2/M3, w15), v13.5 (M5, w15) and v14 (M1/M4, N=500, w15) as its
+> α = 0 cells. Full write-up: `docs/V15_RESULTS.md`.
+
+**Why.** Supervisor brief: "V15 is noise analysis, so noisy input alpha from real IBM
+calibrated noise." The last condition in the thesis aims where a front-end advantage
+could appear.
+
+**Design (pre-registered, `docs/PREREGISTRATION_v15.md`).** Noise on the **front-end
+only** (the QNN head stays exact by design), from the ibm_brisbane calibration
+(FakeBrisbane snapshot 2025-02-26, hash-checked by every job). Each logical gate is
+charged its native IBM gates: RY → 2 SX, CRZ → 2 ECR, CNOT → 1 ECR. Each native gate gets
+depolarizing + thermal relaxation (the channels `NoiseModel.from_backend` builds), and
+readout error is applied to ⟨Z⟩. α scales every error rate. M1, M2, M3, M5 at α ∈ {0, 0.5,
+1, 2, 4}; M4 at 0 only. K=5 A/B and K=10, N=500, w15, seeds 42–51 = **630 runs**
+(63 smoke + 567 grid). Every trained model is also cross-evaluated at α ∈ {0 … 16}, so
+there are two arms: **matched** (trained and tested at α) and **deployed** (trained
+clean, tested at α). Primary (Holm within K): NC3@1 = M3(1) − M3(0), F@1, T@1, slope(F).
+
+**Integrity.** All gates passed.
+- The noise model equals Qiskit Aer / IBM `from_backend` channels to ≤ 2e-15, and full
+  circuits to ≤ 5e-8. Against a full transpiled device simulation it is 9% optimistic.
+- **150/150 α = 0 runs are bit-exact** vs the stored v13/v13.5/v14 runs.
+- Every model and α at a (K, subset, seed) saw identical images.
+- Every job's cross-evaluation reproduced its own saved predictions.
+- 0 runs at the cap (latest stop 122), 0 continuations.
+- **Patch defect (caught at setup, before any job):** the real `train_gadi.py`
+  defines `build_model` and `load_dataset` twice (the v13.5 / v14 wrappers). The
+  first patch required exactly one definition and refused to run. It was fixed to wrap the
+  last (effective) definition and to refuse only a by-reference capture after it.
+- **A1** (before the smoke, resource only): gdata had ~10.3K inodes free, so each job
+  deletes its checkpoint folder after a MATCH cross-evaluation.
+- K=10 kept: 19.79 KSU available, v15 ≈ 4–6 KSU.
+
+**Results.**
+
+| | K=5 pooled | K=10 |
+|---|---|---|
+| NC3@1 | −0.05 [−0.60, +0.50], **TOST eq. (p=.002)** | +0.10 [−0.80, +0.99], **TOST eq. (p=.024)** |
+| F@1 = M3 − M4 | −0.54 [−1.26, +0.18], n.s. | +0.09 [−1.78, +1.95], n.s. |
+| T@1 = M3 − M5 | +1.34, p_holm 0.29 | +2.88, p_holm 0.085 |
+| slope(F) | −0.01 pp/α, n.s. (MDE 0.11) | +0.08, n.s. |
+
+- **Device noise costs nothing when the model trains under it.** Every model's
+  matched accuracy is flat to 4× device noise.
+- **No front-end advantage under noise.** F is never detected and its slope is null. This
+  closes the fifth condition: class count, readout width, training vs freezing, data
+  size, hardware noise.
+- **Exploratory: the QNN head amplifies front-end noise.** Trained clean, with the same
+  front-end and same noise, M2 loses 7.5 / 13.8 pp at α=4 vs M3's 0.3 / 3.2. The
+  noise level that costs 2 pp has a median of about 8–9× device for the classical head
+  vs 2–3× for the QNN head (K=5).
+- **Exploratory: seed 46 again.** It is the worst M5 in all 15 cells, and the only seed
+  whose clean-trained model drops at device noise (85 → 76% at K=5). Noise-aware
+  training protects it.
+- **Corrects the earlier project framing:** "QCQ-CNN noise-robustness advantage" is not
+  supported. Write "noise-tolerant under noise-aware training; no robustness
+  advantage; the QNN head is the least robust component".
+
+Figures: `results/results_v15/analysis/plots/` (standard) and `plots_deep/` (D1–D6);
+lead with `noise_curves.png`, `deploy_curves.png`, then D2 and D3.
