@@ -639,7 +639,7 @@ finding.
 
 ## 10. v13.5: M5, the untrained-front-end control (2026-10-12 → 10-14)
 
-> **Repo gap:** v11–v13 (and v14/v15) are not yet written up in this log. v13.5 uses
+> **Repo gap:** v11–v13 (and v15) are not yet written up in this log; v14 is §11. v13.5 uses
 > v12's class-count cells (K=3/4/5, two digit subsets each, plus K=10) and v13's
 > readout widths (w3/w6/w15). Full write-up: `docs/V13_5_RESULTS.md`.
 
@@ -687,3 +687,46 @@ continuations.
   confounded by circuit type.
 
 Figures: `results/results_v135/analysis/plots_deep/` (D1–D8); lead with D2 and D4.
+
+## 11. v14: low data (sample efficiency), M1–M5 at w15 (2026-10-15 → 10-17)
+
+**Design (pre-registered, `docs/PREREGISTRATION_v14.md`).** MNIST K=5 (subsets A, B)
+and K=10, training set N = 50 / 100 / 250 images per class, M1–M5 × 10 seeds, every
+head at readout width 15. N = 500: M1/M4 run new (never at w15), M2/M3 from v13 w15,
+M5 from v13.5 w15. Max-epoch cap 200 × 500 / N; patience 20 and 30-epoch warmup
+unchanged. 510 runs + 2 reproductions. Primary (Holm within K, 4 tests): F = M3 − M4,
+T = M3 − M5, R = M5 − M4 at N=50 (+TOST ±1), and slope(F) over log₂ N.
+
+**Integrity.** All gates passed (smoke 53/53, grid 459/459). `patch_v14_lowdata.py`
+only wraps `load_dataset` with a split audit; M1–M5 bit-identical to pre-patch code at
+w3/w15, audit on/off identical predictions. Reproductions at N=500 bit-exact: M3 vs v13
+(test_acc 0.924, best 48, stop 68) and M5 vs v13.5 (0.896, 27, 49), all 1000 predictions.
+All models at each (K, subset, N, seed) saw identical images (108 groups); one fixed
+test set per (K, subset). 0 runs at their cap, 0 continuations. N=50 train class counts
+42–57 (K=5) / 39–55 (K=10), paired across models. No amendments; one editorial
+correction to §8 text (job count, n_obs) logged in the pre-registration.
+
+**Results.**
+
+| | N = 50 | 100 | 250 | 500 |
+|---|---|---|---|---|
+| F = M3 − M4, K=5 / K=10 | −1.47 / −1.74 | −1.41 / −2.89 | −0.57 / −0.87 | −0.49 (TOST eq.) / −0.01 |
+| BE = M3 − M2, K=5 / K=10 | **+13.5 / +17.1** | +9.7 / +10.8 | +4.2 / +5.3 | +2.3 / +2.4 |
+| T = M3 − M5, K=5 / K=10 | +1.64 / +2.08 | +1.38 / +2.50 | +1.34 / +3.32 | +1.59 / +3.08 |
+
+- **No sample-efficiency advantage from the quantum front-end.** All four primary tests
+  null (MDE 0.8–7.0 pp). F negative in 8/8 cells; an M3 advantage above +0.8 pp (K=5) /
+  +1.1 pp (K=10) at N=50 is excluded. slope(F) null, sign opposite to a benefit. P1 main
+  claim holds; equivalence shown only at K=5 N=500.
+- **The quantum head is sample-inefficient even at full readout.** BE grows as N falls,
+  −3.5 / −4.4 pp per halving (p ≤ 5×10⁻⁵), every cell and both subsets. P4 confirmed.
+- **Exploratory: it is a generalisation gap, not fitting.** At N=50 the train-fit
+  difference is 1.1 / 1.5 pp; the gap difference 12.4 / 15.6 pp (D2). Extends v13 V3
+  along the data axis.
+- **Training the front-end** helps 1.4–3.3 pp, flat in N (P2 holds). **Frozen random
+  front-end** worse than none in 8/8 (P3 holds); M5 the least seed-stable model.
+- **Exploratory: seed 46** is the worst M5 in all 9 new cells (mean z −2.39), replicating
+  v13.5. Without it, K=5 T falls to 0.4–0.8 pp; K=10 N=250 keeps +2.0 [0.8, 3.3].
+
+Figures: `results/results_v14/analysis/plots/` (lead with `contrasts_vs_n.png`) and
+`plots_deep/` (D1–D5; lead with D2, then D4). Write-up: `docs/V14_RESULTS.md`.
