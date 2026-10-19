@@ -60,6 +60,17 @@ function amended from BCE to cross-entropy before the grid ran
 (`docs/AMENDMENT_2026-08-13_loss.md`). Raw per-run result JSONs and job logs
 are now in the repo. See `docs/CHANGELOG_v10.md` and `logs/MNIST_LOG.md` §4b.
 
+## v13_5_m5
+v13.5: adds **M5 = M3 with the quantum front-end frozen** to the v13 code
+(v12 seed fix + v13 readout-width patch, neither of which is in this repo yet). Applied
+on Gadi by `setup_v135.sh` → `patch_v135_m5.py`, which wraps `build_model` /
+`expected_params` so M1–M4 call the originals unchanged, adds M5 to `--model`, adds M5
+to the warmup rule (`needs_warmup`, amendment A1) and logs the resolved warmup per run.
+Every M5 run prints a bit-exact front-end check at exit. `scripts/verify_v135_m5.py`
+proves M1–M4 bit-identical to the pre-patch file at all 8 (K, width) cells. PBS:
+smoke → gate (`check_v135.sh`) → grid → gate; 1 h walltime (A2); the `MODEL` clash fixed
+as `GRID_MODEL` (defect D1). See `docs/PREREGISTRATION_v13_5.md`.
+
 ## diagnostics/smoke10_mnist
 10-class MNIST across all four models, at two QNN readout widths. Established
 that the back-end is measurement-limited. **Not iso-parametric** — read

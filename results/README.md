@@ -11,6 +11,7 @@ accuracy, the parameter count, and the full protocol under which it ran.
 | `results_v8_fashion_c26/` | 20 | Fashion-MNIST 2,6, 4 models × 5 seeds — corrected gap@best metric |
 | `results_v9_fashion_c24/` | 20 | Fashion-MNIST 2,4, 4 models × 5 seeds — closes the arm (a) sequence |
 | `results_v10_mnist10/` | 20 | 10-class MNIST — raw JSONs + job logs now in repo; **reduced-scale/feasibility, not locked full protocol** |
+| `results_v135/` | 131 | **v13.5**: M5 (M3 with frozen front-end), MNIST K=3/4/5/10 × widths 3/6/15, 10 seeds + 1 M3 reproduction — own README |
 | `results_reps_fashion_mnist_c06/` | 20 | ansatz depth ablation, M1/M2 × reps{1,2} × 5 seeds |
 | `results_smoke10_mnist10/` | 6 | 10-class diagnostic — **not iso-parametric** |
 | `results_v5_scale1000/`, `results_v5_scale3000/`, `results_v5_smoke/` | 12 | reduced-scale validation |
@@ -57,6 +58,13 @@ model) agrees in sign with the accuracy-mean test (M2 > M1, both null,
 p = 0.574) — but per-seed McNemar shows 4/5 seeds individually significant
 (p < 0.0005) with the sign flipping seed to seed, which pooling hides. Full
 write-up in `logs/MNIST_LOG.md` §4b.
+
+**v13.5, M5 control (MNIST K=3/4/5/10)** — training the Circuit-4 front-end
+(M3 − M5) helps in all 13 cells: +0.6 pp (K=3) → +0.7 (K=4) → +1.5 (K=5) →
+≈ +3 (K=10), detected after Holm at K=10 w6/w15. An untrained front-end is slightly
+worse than none (M5 − M4 = −0.5 → −2.6 pp). Exploratory: one bad random
+initialisation (seed 46) drives most of the K ≤ 5 effect; K=10 keeps ≈ 2 pp without
+it. M5 is 2–6× less seed-stable than M3. Full write-up `docs/V13_5_RESULTS.md`.
 
 **Ansatz depth** — M1 −0.02 pp (p = 0.975), M2 −0.14 pp (p = 0.773). Null.
 

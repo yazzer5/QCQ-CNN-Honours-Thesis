@@ -634,3 +634,56 @@ finding.
 - `scripts/verify_reps.py` has not yet been run to completion — it confirms
   reps=1 against Qiskit's forward and gradients. The ablation result stands on
   the training behaviour, but run it before the §8.4 numbers go into the thesis.
+
+---
+
+## 10. v13.5: M5, the untrained-front-end control (2026-10-12 → 10-14)
+
+> **Repo gap:** v11–v13 (and v14/v15) are not yet written up in this log. v13.5 uses
+> v12's class-count cells (K=3/4/5, two digit subsets each, plus K=10) and v13's
+> readout widths (w3/w6/w15). Full write-up: `docs/V13_5_RESULTS.md`.
+
+**Why.** Supervisor request: every experiment from v12 to v15 must include **M5 = M3
+with the front-end not trained**. M2 − M1 (§4b) changes two things at once, because
+M1's frozen front-end is Henderson RandomLayers, not Circuit 4. M3 − M5 changes only
+whether the Circuit-4 front-end is trained, with a classical head.
+
+**Design (pre-registered, `docs/PREREGISTRATION_v13_5.md`).** M5 only, at all 13
+v12+v13 cells × 10 seeds = 130 runs, plus 1 M3 reproduction. M5 = `build_model("M3")`
++ front-end `requires_grad=False`: same init as M3, same params, same 30-epoch warmup.
+Primary: M3 − M5 (+TOST ±1) at every width; M5 − M4 (+TOST ±1) at w3. Holm within K.
+
+**Integrity.** All gates passed. M1–M4 bit-identical to pre-patch code (verify script,
+8 cells). M3 reproduction bit-exact vs v12 (test_acc 0.935, best 58, stop 78, 1000
+predictions). Every M5 front-end unchanged at exit. 0 runs at the 200-epoch cap, 0
+continuations.
+- **A1:** the warmup rule `needs_warmup = model_name in ("M2","M3") or …` would have
+  given M5 0 warmup epochs; M5 added before the smoke, resolved value now logged per run.
+- **A2:** K=10 walltime 4 h → 1 h (resource only).
+- **D1:** `config135.sh` defined `MODEL=M5` and overwrote the reproduction job's
+  `MODEL=M3`. Caught by the gate, fixed (`GRID_MODEL`), rerun. The stray run matched
+  the M5 smoke bit-for-bit, a free determinism check. Lesson: a sourced config must
+  never define a name a job script takes as input.
+
+**Results.**
+
+| K | w | M3 − M5 (pp) | p_holm | M5 − M4 (pp) |
+|---|---|---|---|---|
+| 3 | 3 | +0.61 | 0.12 | −0.51 (TOST eq.) |
+| 4 | 3 | +0.67 | 0.12 | −1.10 |
+| 5 | 3 / 6 / 15 | +1.45 / +1.61 / +1.59 | 0.24 / 0.24 / 0.18 | −1.56 |
+| 10 | 3 / 6 / 15 | +2.96 / +2.63 / +3.08 | 0.079 / **0.014** / **0.046** | −2.63 |
+
+- **Training the front-end helps,** in 13/13 cells, growing with K. Detected at K=10.
+  P1 (M3 ≈ M5) not supported.
+- **An untrained Circuit-4 front-end is slightly worse than none** (M5 − M4 < 0 at every
+  K; detected at K=4 subset A). With v12's M3 ≈ M4: training repairs what a random
+  front-end loses; it adds nothing beyond no front-end.
+- **Exploratory: seed 46 is a bad random front-end in all 13 cells** (training gains
+  4–11 pp there). Without it, K=3–4 are TOST-equivalent; K=10 keeps ≈ +2.2 pp
+  [+0.9, +3.5]. M5 is 2–6× less seed-stable than M3 (P4 refuted). Width control holds
+  at K=5 (TOST).
+- **Corrects §4b's framing:** "training the front-end adds nothing" (M2 − M1) was
+  confounded by circuit type.
+
+Figures: `results/results_v135/analysis/plots_deep/` (D1–D8); lead with D2 and D4.

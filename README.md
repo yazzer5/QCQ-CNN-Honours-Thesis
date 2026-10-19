@@ -30,12 +30,14 @@ differences cannot be explained by capacity.
 | **M2** | trainable Circuit 4 | QNN head | 1,610 |
 | **M3** | trainable Circuit 4 | classical head | 1,600 |
 | **M4** | bilinear resize (no quantum) | classical head | 1,594 |
+| **M5** | Circuit 4, **frozen** at init | classical head | = M3 (6 fewer trainable) |
 
 Each adjacent contrast isolates one factor:
 
 - **M2 − M1** → front-end trainability
 - **M2 − M3** → the quantum back-end
 - **M3 − M4** → the quantum front-end
+- **M3 − M5** → front-end training, with the circuit held fixed (added in v13.5)
 
 Shared backbone: `Conv2d(4,8,3)/ReLU/MaxPool → Conv2d(8,16,3)/ReLU/MaxPool →
 Dropout2d → Flatten` → 64-dim (1,464 params).
@@ -85,6 +87,7 @@ code/
   v7_fashion/        Fashion-MNIST 0,6; offline data handling; two launch bugs fixed
   v8_fashion/        Fashion-MNIST 2,6; lazy qiskit import, gap@best metric fix
   v9_fashion/        Fashion-MNIST 2,4; identical to v8 except CODE_VERSION tag
+  v13_5_m5/         v13.5: M5 (frozen-front-end control) patch, verify, PBS, analysis
   v10_mnist10/       10-class MNIST grid — **reduced-scale/feasibility run,
                      not the locked full protocol, see caveat below**;
                      3-observable readout, re-padded iso-parametric budget,
@@ -100,6 +103,7 @@ results/
   results_v9_fashion_c24/            20 runs — Fashion 2,4 (closes arm-a sequence)
   results_v10_mnist10/               20 runs — 10-class, reduced-scale/feasibility
                                       (raw JSONs + job logs now in repo)
+  results_v135/                     131 runs — v13.5 M5 control, K=3/4/5/10 (own README)
   results_reps_fashion_mnist_c06/    20 runs — ansatz depth ablation
   results_smoke10_mnist10/            6 runs — 10-class diagnostic
   results_v5_*/                      reduced-scale validation
@@ -171,6 +175,10 @@ Hardware used: NCI Gadi, `gpuvolta` queue (Tesla V100-SXM2-32GB), project
   reduced-scale.)
 
 ## Status
+
+> **Repo gap:** v11 (MRI), v12 (class-count sweep), v13 (readout width), v14, v15 were
+> run after 2026-08-14 and are not yet in this repo. v13.5 (2026-10-14) is, and its
+> comparators come from v12/v13 (see `results/results_v135/README.md`).
 
 Complete: MNIST 3-vs-5 grid · Fashion-MNIST 0,6 / 2,6 / 2,4 grids (all of arm
 (a), 80 runs total, code for all three now in `code/`) · 10-class MNIST
