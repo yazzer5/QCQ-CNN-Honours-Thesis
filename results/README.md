@@ -26,7 +26,7 @@ accuracy, the parameter count, and the full protocol under which it ran.
 | `results_reps_fashion_mnist_c06/` | 20 | ansatz depth ablation, M1/M2 × reps{1,2} × 5 seeds |
 | `results_v10_loss_smoke/` | 2 | v10 loss amendment smoke test: M2 seed 42, BCE vs cross-entropy |
 | `results_smoke10_mnist10/` | 6 | 10-class diagnostic — **not iso-parametric** |
-| `results_v5_scale1000/`, `results_v5_scale3000/`, `results_v5_smoke/` | 12 | reduced-scale validation |
+| `results_v5_scale1000/`, `results_v5_scale3000/`, `results_v5_smoke/` | 20 | reduced-scale validation (smoke includes the dropout 0 vs 0.5 A/B) |
 | `job_logs/` | — | PBS stdout/stderr, including full epoch traces |
 | `gpu_traces/` | — | GPU utilisation CSVs |
 
