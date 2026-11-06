@@ -21,6 +21,7 @@ accuracy, the parameter count, and the full protocol under which it ran.
 | `results_v16b/` | 121 | Redesigned quantum head (BFR) against M2–M4 |
 | `results_v16bx/` | 42 | Controls for the redesign (M4 trim, BFR with ZZ restored) |
 | `results_reps_fashion_mnist_c06/` | 20 | ansatz depth ablation, M1/M2 × reps{1,2} × 5 seeds |
+| `results_v10_loss_smoke/` | 2 | v10 loss amendment smoke test: M2 seed 42, BCE vs cross-entropy |
 | `results_smoke10_mnist10/` | 6 | 10-class diagnostic — **not iso-parametric** |
 | `results_v5_scale1000/`, `results_v5_scale3000/`, `results_v5_smoke/` | 12 | reduced-scale validation |
 | `job_logs/` | — | PBS stdout/stderr, including full epoch traces |

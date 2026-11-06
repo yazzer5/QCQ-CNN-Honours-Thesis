@@ -1,0 +1,139 @@
+#!/bin/bash
+#PBS -N v10loss
+#PBS -P wa66
+#PBS -q gpuvolta
+#PBS -l walltime=04:00:00
+#PBS -l ncpus=12
+#PBS -l ngpus=1
+#PBS -l mem=32GB
+#PBS -l jobfs=10GB
+#PBS -l storage=gdata/wa66
+#PBS -v MODEL=M2,SEED=42,LOSS=bce,CONT=0
+
+# ═══════════════════════════════════════════════════════════════════════
+# LOSS-FUNCTION SMOKE TEST — MNIST 10-class. NOT the v10 grid.
+#
+# THIS IS NOT A RESULT. Two jobs, one variable. Nothing produced here goes
+# into the thesis as an accuracy figure. The only question being answered
+# is: does the choice of training loss change the convergence behaviour of
+# the 10-class models on REAL MNIST, the way it did on synthetic data?
+#
+# WHY
+#   The v10 training loss is sigmoid + BCE against a one-hot target. At 10
+#   classes that scores each of the ten logits independently, so nine of
+#   ten targets are "no" for every image and the loss drives every logit
+#   toward sigmoid^-1(0.1) ~= -2.2. M1/M2's logits are fc3(Linear(3,10))
+#   applied to QNN expectations bounded in [-1,1]; M3/M4's classical head
+#   is unbounded. The handicap is asymmetric, and it falls on exactly the
+#   two models the primary M2-M1 contrast sits between.
+#
+#   Local synthetic-data run (CPU, 1 seed, not MNIST):
+#     15 epochs  BCE: M1 11.6  M2 15.6  M3 46.2  M4 50.0
+#     15 epochs  CE : M1 53.6  M2 66.6  M3 100   M4 98.6
+#     60 epochs  BCE: M1 51.8  M2 36.4   <-- M2 BELOW M1, sign reversed
+#
+#   That is suggestive, not decisive. The 10-class diagnostic reached
+#   72.9%/66.5% under BCE on real MNIST, so BCE plainly does work there.
+#   Hence: measure it on the real task before committing 20 grid jobs.
+#
+# DECISION RULE, FIXED BEFORE SUBMISSION
+#   Decide on CONVERGENCE BEHAVIOUR ONLY, never on the size or sign of
+#   M2 - M1. Specifically: does either arm leave any model sitting within
+#   2 pp of chance (10%) past epoch 20?
+#     - Neither arm plateaus       -> keep BCE. Concern retired WITH
+#                                     evidence. Record it and run the grid
+#                                     exactly as pre-registered.
+#     - Only BCE plateaus          -> switch the grid to CE. Amend
+#                                     PREREGISTRATION_MNIST10.md with a
+#                                     dated pre-grid note giving this
+#                                     rule as the reason.
+#     - Both plateaus              -> neither loss is the problem. Stop and
+#                                     find what is before spending the grid.
+#   Comparing M2 - M1 between the two arms and picking the bigger one
+#   would be choosing the answer. Do not do it.
+#
+# WHAT IS IDENTICAL BETWEEN THE TWO ARMS
+#   Model, seed, architecture, all 1,646 parameters, data, split, batch
+#   size, optimiser, learning rate, epochs, patience, observables, head
+#   variant, determinism. Only --loss differs.
+#
+# NOTE the [PROTOCOL] REDUCED-SCALE banner is EXPECTED (--max_epochs and
+# --n_test are passed explicitly). Read [PROTOCOL RESOLVED] instead, which
+# this build prints from the resolved variables rather than echoing a
+# hardcoded string from this file.
+# ═══════════════════════════════════════════════════════════════════════
+
+set -e
+cd "$PBS_O_WORKDIR/.."
+echo "PWD=$(pwd)"
+ls -l train_gadi.py quanv_torch.py qnn_torch.py || { echo "FATAL: repo root not found"; exit 1; }
+
+module load cuda/11.7.0
+source /g/data/wa66/yh2481/miniconda3/etc/profile.d/conda.sh
+conda activate qcqcnn
+export PYTHONPATH=""
+
+# Must be set BEFORE the process creates its cuBLAS handle. train_gadi.py
+# also sets it via os.environ.setdefault, but that runs after torch is
+# already imported, which PyTorch documents as too late.
+export CUBLAS_WORKSPACE_CONFIG=:4096:8
+
+CLASSES="0,1,2,3,4,5,6,7,8,9"
+
+echo "=== Job start: $(date) ==="
+echo "MODEL=$MODEL SEED=$SEED LOSS=$LOSS CONT=$CONT CLASSES=$CLASSES"
+echo "[SMOKE] loss-function comparison. NOT a grid run, NOT a thesis result."
+
+python scripts/preflight_data.py --data_root ./data --dataset mnist \
+    --classes "$CLASSES" --n_train 5000 --n_val 1250 --n_test 2000 \
+    || { echo "FATAL: data preflight failed -- not training"; exit 1; }
+
+nvidia-smi --query-gpu=name,memory.total --format=csv
+
+nvidia-smi --query-gpu=timestamp,utilization.gpu,memory.used \
+    --format=csv -l 2 > gpu_util_loss_${LOSS}_${MODEL}_s${SEED}.csv &
+NVSMI_PID=$!
+
+set +e
+python train_gadi.py \
+    --model "$MODEL" \
+    --dataset mnist \
+    --classes "$CLASSES" \
+    --seed "$SEED" \
+    --noise_alpha 0.0 \
+    --n_obs 3 \
+    --head_variant linear \
+    --loss "$LOSS" \
+    --deterministic \
+    --save_predictions \
+    --n_test 2000 \
+    --max_epochs 200 \
+    --patience 20 \
+    --output_dir "./results_loss_smoke_${LOSS}" \
+    --data_root ./data \
+    --checkpoint_dir "./ckpt_loss_smoke_${LOSS}" \
+    --time_budget_hours 3.5
+RC=$?
+set -e
+
+kill $NVSMI_PID 2>/dev/null || true
+
+if [ $RC -eq 99 ]; then
+    # CONTINUATION CAP. v10's grid script resubmitted on rc=99 with no
+    # counter: if 200 epochs never fit the time budget, every job requeues
+    # itself forever. Epoch timing at 10 classes has never been measured on
+    # Gadi, so that risk is live. Three links, then stop and shout.
+    if [ "$CONT" -ge 3 ]; then
+        echo "=== FATAL: hit the time budget $CONT times. NOT resubmitting. ==="
+        echo "200 epochs do not fit in 3.5 h at this scale. Re-plan the"
+        echo "protocol before spending more SU. Job end: $(date) rc=99 ==="
+        exit 1
+    fi
+    echo "Time budget reached -- submitting continuation $((CONT+1))/3."
+    cd "$PBS_O_WORKDIR"
+    qsub -v MODEL=$MODEL,SEED=$SEED,LOSS=$LOSS,CONT=$((CONT+1)) run_loss_smoke.pbs
+    exit 0
+fi
+
+echo "=== Job end: $(date) rc=$RC ==="
+exit $RC

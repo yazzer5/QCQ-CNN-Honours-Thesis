@@ -98,6 +98,10 @@ and dumps the head input z. v16b tests a redesigned head (`bfr_head_v16b.py`); v
 adds the controls (`bfr_ext_v16b.py`). Each folder carries the patched trainer it ran
 with. See the matching `docs/PREREGISTRATION_*` and each folder's README.
 
+## diagnostics/v10_loss_smoke
+The one-seed M2 smoke test (BCE vs cross-entropy) behind the loss amendment
+(`docs/AMENDMENT_2026-08-13_loss.md`). Results in `results/results_v10_loss_smoke/`.
+
 ## diagnostics/smoke10_mnist
 10-class MNIST across all four models, at two QNN readout widths. Established
 that the back-end is measurement-limited. **Not iso-parametric** — read
