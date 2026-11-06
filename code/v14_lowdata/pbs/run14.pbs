@@ -1,0 +1,74 @@
+#!/bin/bash
+# ═══════════════════════════════════════════════════════════════════════
+# v14 -- low data. ONE job = one (K, subset, N per class, model, seed).
+# Protocol is v13/v13.5's exactly (CE, linear head, w15, deterministic, val
+# 125/class, test 200/class, patience 20, warmup 30 for M1/M2/M3/M5).
+# Changes: --n_train = N*K, and the max-epoch cap = 200*500/N (pre-registered).
+#   qsub -v K,TAG,N,MODEL,SEED,OUT,CONT   (submit scripts set the name)
+# ═══════════════════════════════════════════════════════════════════════
+#PBS -P wa66
+#PBS -q gpuvolta
+#PBS -l ncpus=12
+#PBS -l ngpus=1
+#PBS -l mem=32GB
+#PBS -l walltime=01:00:00
+#PBS -l storage=gdata/wa66
+#PBS -l wd
+#PBS -N v14
+#PBS -j oe
+
+set -e
+: "${K:?}" "${TAG:?}" "${N:?}" "${MODEL:?}" "${SEED:?}" "${OUT:?}"
+CONT="${CONT:-0}"
+
+cd "$PBS_O_WORKDIR"
+source ./config14.sh
+CLASSES=$(subset_classes "$K" "$TAG") || { echo "FATAL: unknown subset K=$K TAG=$TAG"; exit 1; }
+MAX_EPOCHS=$(max_epochs_for "$N"); BUDGET=$(budget_for "$N"); WALLTIME=$(walltime_for "$N")
+N_TRAIN=$((N * K)); N_VAL=$((PER_CLASS_VAL * K)); N_TEST=$((PER_CLASS_TEST * K))
+
+cd "$PBS_O_WORKDIR/.."
+ls -l train_gadi.py quanv_torch.py qnn_torch.py || { echo "FATAL: repo root not found"; exit 1; }
+grep -q "V13_READOUT_PATCH" qnn_torch.py || { echo "FATAL: qnn_torch.py is not the v13-patched file"; exit 1; }
+grep -q "V135_M5_PATCH" train_gadi.py    || { echo "FATAL: train_gadi.py lacks the v13.5 M5 patch"; exit 1; }
+grep -q "V14_SPLIT_AUDIT" train_gadi.py  || { echo "FATAL: train_gadi.py is not the v14-patched file"; exit 1; }
+unset V14_NO_AUDIT V14_SPLIT_ONLY V14_SPLIT_DUMP
+
+module load cuda/11.7.0
+source /g/data/wa66/yh2481/miniconda3/etc/profile.d/conda.sh
+conda activate qcqcnn
+export PYTHONPATH=""
+export CUBLAS_WORKSPACE_CONFIG=:4096:8      # before torch makes its cuBLAS handle (v10 D3)
+
+echo "=== Job start: $(date) ==="
+echo "[V14] W=$W_OBS"
+echo "[V14] K=$K TAG=$TAG N=$N CLASSES=$CLASSES MODEL=$MODEL SEED=$SEED OUT=$OUT CONT=$CONT"
+echo "[V14] split train=$N_TRAIN val=$N_VAL test=$N_TEST max_epochs=$MAX_EPOCHS patience=$PATIENCE budget=${BUDGET}h"
+
+python scripts/preflight_data.py --data_root ./data --dataset mnist \
+    --classes "$CLASSES" --n_train $N_TRAIN --n_val $N_VAL --n_test $N_TEST \
+    || { echo "FATAL: data preflight failed -- not training"; exit 1; }
+
+set +e
+python train_gadi.py \
+    --model "$MODEL" --dataset mnist --classes "$CLASSES" --seed "$SEED" \
+    --noise_alpha 0.0 --n_obs "$W_OBS" --head_variant linear --loss ce \
+    --deterministic --save_predictions \
+    --n_train $N_TRAIN --n_val $N_VAL --n_test $N_TEST \
+    --max_epochs $MAX_EPOCHS --patience $PATIENCE \
+    --output_dir "./$OUT" --data_root ./data \
+    --checkpoint_dir "./ckpt_${OUT#results_}_${MODEL}_s${SEED}" \
+    --time_budget_hours "$BUDGET"
+RC=$?
+set -e
+
+if [ $RC -eq 99 ]; then
+  if [ "$CONT" -ge 3 ]; then echo "=== FATAL: time budget hit $CONT times ==="; echo "=== Job end: $(date) rc=99 ==="; exit 1; fi
+  echo "Time budget reached -- continuation $((CONT+1))/3. NOT bit-reproducible: flag it."
+  cd "$PBS_O_WORKDIR"
+  qsub -N "${PBS_JOBNAME}" -l walltime=$WALLTIME \
+       -v K=$K,TAG=$TAG,N=$N,MODEL=$MODEL,SEED=$SEED,OUT=$OUT,CONT=$((CONT+1)) run14.pbs
+  exit 0
+fi
+echo "=== Job end: $(date) rc=$RC ==="
+exit $RC

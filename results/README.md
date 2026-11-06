@@ -12,6 +12,7 @@ accuracy, the parameter count, and the full protocol under which it ran.
 | `results_v9_fashion_c24/` | 20 | Fashion-MNIST 2,4, 4 models × 5 seeds — closes the arm (a) sequence |
 | `results_v10_mnist10/` | 20 | 10-class MNIST — raw JSONs + job logs now in repo; **reduced-scale/feasibility, not locked full protocol** |
 | `results_v135/` | 131 | **v13.5**: M5 (M3 with frozen front-end), MNIST K=3/4/5/10 × widths 3/6/15, 10 seeds + 1 M3 reproduction — own README |
+| `results_v14/` | 512 | **v14**: low data, M1–M5 at w15, MNIST K=5/10 × N=50/100/250 (+ M1/M4 at 500), 10 seeds + 2 reproductions — own README |
 | `results_reps_fashion_mnist_c06/` | 20 | ansatz depth ablation, M1/M2 × reps{1,2} × 5 seeds |
 | `results_smoke10_mnist10/` | 6 | 10-class diagnostic — **not iso-parametric** |
 | `results_v5_scale1000/`, `results_v5_scale3000/`, `results_v5_smoke/` | 12 | reduced-scale validation |
