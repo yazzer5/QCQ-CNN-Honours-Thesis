@@ -78,6 +78,16 @@ ansatz depth, where **Long's paper and their own code contradict each other**
 (6 vs 4 variational parameters). This repository follows the paper; the
 difference was measured across 5 seeds and found immaterial.
 
+**5. Under IBM-calibrated hardware noise, the trained quantum front-end still gives
+no advantage, and noise costs nothing once the model trains under it (v15).**
+With ibm_brisbane-calibrated noise on the front-end (0.5–4× the device), M3's accuracy
+at device noise is equivalent to its noiseless accuracy within ±1 pp (TOST, K=5 and
+K=10), and M3 − M4 is not detected at any noise level. Models trained without noise
+and then run on noisy hardware are a different story. There, the QNN head is the
+fragile part (exploratory): with the same front-end and the same noise, it loses
+7.5–13.8 pp at 4× device noise against 0.3–3.2 pp for the classical head. See
+`docs/V15_RESULTS.md` and `logs/MNIST_LOG.md` §11.
+
 ## Repository layout
 
 ```
@@ -93,6 +103,10 @@ code/
   v12_class_count/    class count K = 3, 4, 5 (10 seeds)
   v13_readout_width/  QNN readout width w = 3, 6, 15
   v13_5_m5/         v13.5: M5 (frozen-front-end control) patch, verify, PBS, analysis
+  v14_lowdata/      v14: low data (50-500/class), M1-M5 at w15; split audit, PBS, analysis
+  v15_noise/        v15: IBM-calibrated front-end noise (ibm_brisbane), Aer-verified
+                     noise model, patch, verify, PBS, gate, analysis
+  v15_5_input_noise/ v15.5: Gaussian pixel noise on the input, M1-M5, two arms
   v16a_closed_form_head/   closed-form classical replica of the QNN head
   v16b_redesigned_head/    redesigned quantum head (BFR)
   v16bx_redesign_controls/ controls for the redesign
@@ -117,6 +131,11 @@ results/
   results_v12/                      240 runs — class count K=3/4/5
   results_v13/                      142 runs — readout width
   results_v135/                     131 runs — v13.5 M5 control, K=3/4/5/10 (own README)
+  results_v14/                      512 runs — v14 low data, M1-M5 at w15, K=5/10 (own README)
+  results_v15/                      630 runs — v15 front-end noise, K=5/10, alpha 0–4,
+                                      cross-evaluated to alpha 16 (own README)
+  results_v15_5/                    750 runs — v15.5 pixel noise, K=5/10, sigma 0–0.5,
+                                      deployed and matched arms
   results_v16a/                     closed-form head replica (+ z dumps, calib)
   results_v16b/                     redesigned head
   results_v16bx/                    redesign controls
@@ -192,12 +211,16 @@ Hardware used: NCI Gadi, `gpuvolta` queue (Tesla V100-SXM2-32GB), project
 
 ## Status
 
-> **Repo coverage:** v1-v13.5 and v16a/v16b/v16b-ext are on `main` once this branch
-> merges. v14, v15 and v15.5 are in their own PRs. v16c was analysis only. v15.6 ran after the
-> 2026-10-31 archive and is not here yet. The results write-ups for v13 and v16a-c
-> (and the v15.6 pre-registration) are kept in the thesis project notes, not yet in
-> `docs/`. Datasets, checkpoints and archive tarballs are not committed
-> (see `DATASETS.md`).
+> **Repo coverage:** every experiment from v1 to v16b-ext is in the repo: code, result
+> JSONs, analysis and job logs. v16c was analysis only. v15.6 (2026-11-04) is not here
+> yet. The results write-ups for v13 and v16a–c are kept in the thesis project notes,
+> not yet in `docs/`. Datasets, checkpoints and archive tarballs are not committed (see
+> `DATASETS.md`).
+>
+> **v14 headline:** no sample-efficiency advantage from the quantum front-end down to
+> 50 images per class (M3 − M4 never detected, bounded at about +1 pp). The quantum head's
+> cost grows from 2.3 pp at 500/class to 13.5 pp (K=5) and 17.1 pp (K=10) at 50/class,
+> almost entirely as a generalisation gap. Write-up: `docs/V14_RESULTS.md`.
 
 Complete: MNIST 3-vs-5 grid · Fashion-MNIST 0,6 / 2,6 / 2,4 grids (all of arm
 (a), 80 runs total, code for all three now in `code/`) · 10-class MNIST

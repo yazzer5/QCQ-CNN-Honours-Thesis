@@ -17,6 +17,9 @@ accuracy, the parameter count, and the full protocol under which it ran.
 | `results_v12/` | 240 | Class count K = 3/4/5, two digit subsets, 4 models × 10 seeds |
 | `results_v13/` | 142 | Readout width w = 6/15 at K = 5 and 10, plus bit-exact reproductions |
 | `results_v135/` | 131 | **v13.5**: M5 (M3 with frozen front-end), MNIST K=3/4/5/10 × widths 3/6/15, 10 seeds + 1 M3 reproduction — own README |
+| `results_v14/` | 512 | **v14**: low data, M1–M5 at w15, MNIST K=5/10 × N=50/100/250 (+ M1/M4 at 500), 10 seeds + 2 reproductions — own README |
+| `results_v15/` | 630 | **v15**: IBM-calibrated (ibm_brisbane) noise on the front end, α = 0–4, cross-evaluated to α = 16 — own README |
+| `results_v15_5/` | 750 | **v15.5**: Gaussian pixel noise on the input, σ = 0–0.5, M1–M5, matched and deployed arms |
 | `results_v16a/` | 147 | Closed-form classical replica of the QNN head; `z_*` cells hold the head-input dumps (`.npz`); `calib/` the Aer reference |
 | `results_v16b/` | 121 | Redesigned quantum head (BFR) against M2–M4 |
 | `results_v16bx/` | 42 | Controls for the redesign (M4 trim, BFR with ZZ restored) |
