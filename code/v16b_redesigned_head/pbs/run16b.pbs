@@ -1,0 +1,81 @@
+#!/bin/bash
+# ═══════════════════════════════════════════════════════════════════════
+# v16b: one job. Protocol = v14 at w15 (CE, linear head, deterministic, AdamW lr 1e-3 wd 1e-4,
+# batch 32, dropout 0, val 125/class, test 200/class, patience 20, max epochs 200*500/N, warmup = M4's
+# rule (0)). No noise (V15_ALPHA unset).
+#   MODEL=BFR -> --model M4 --v16b_head bfr        MODEL=M4 (ARM=r) -> plain M4 (reproduction)
+#   qsub -v ARM,K,TAG,N,MODEL,SEED,OUT,CONT   (submit scripts set the name)
+# ═══════════════════════════════════════════════════════════════════════
+#PBS -P wa66
+#PBS -q gpuvolta
+#PBS -l ncpus=12
+#PBS -l ngpus=1
+#PBS -l mem=32GB
+#PBS -l walltime=01:00:00
+#PBS -l storage=gdata/wa66
+#PBS -l wd
+#PBS -N v16b
+#PBS -j oe
+
+set -e
+: "${ARM:?}" "${K:?}" "${TAG:?}" "${N:?}" "${MODEL:?}" "${SEED:?}" "${OUT:?}"
+CONT="${CONT:-0}"
+
+cd "$PBS_O_WORKDIR"
+source ./config16b.sh
+CLASSES=$(subset_classes "$K" "$TAG") || { echo "FATAL: unknown subset K=$K TAG=$TAG"; exit 1; }
+N_TRAIN=$((N * K)); N_VAL=$((PER_CLASS_VAL * K)); N_TEST=$((PER_CLASS_TEST * K))
+MAX_EPOCHS=$(max_epochs_for "$N")
+case "$MODEL" in
+  BFR) FLAGS="--v16b_head bfr" ;;
+  M4)  FLAGS="" ;;
+  *) echo "FATAL: unknown MODEL=$MODEL"; exit 1 ;;
+esac
+
+cd "$PBS_O_WORKDIR/.."
+ls -l train_gadi.py quanv_torch.py qnn_torch.py closed_form_zz_v16.py v16_tools.py bfr_head_v16b.py || { echo "FATAL: repo root not found"; exit 1; }
+for MK in V135_M5_PATCH V14_SPLIT_AUDIT V15_FE_NOISE V16A_HEAD_SAVEZ V16B_BFR_HEAD; do
+  grep -q "$MK" train_gadi.py || { echo "FATAL: train_gadi.py lacks $MK"; exit 1; }
+done
+unset V14_NO_AUDIT V14_SPLIT_ONLY V14_SPLIT_DUMP V15_ALPHA V15_CALIB V15_EVAL_ALPHAS
+
+module load cuda/11.7.0
+source /g/data/wa66/yh2481/miniconda3/etc/profile.d/conda.sh
+conda activate qcqcnn
+export PYTHONPATH=""
+export CUBLAS_WORKSPACE_CONFIG=:4096:8      # before torch makes its cuBLAS handle (v10 D3)
+
+CKPT="./ckpt_${OUT#results_}_${MODEL}_s${SEED}"
+echo "=== Job start: $(date) ==="
+echo "[V16B] ARM=$ARM K=$K TAG=$TAG N=$N CLASSES=$CLASSES MODEL=$MODEL SEED=$SEED OUT=$OUT CONT=$CONT"
+echo "[V16B] split train=$N_TRAIN val=$N_VAL test=$N_TEST max_epochs=$MAX_EPOCHS budget=${BUDGET}h flags=[$FLAGS]"
+
+python3 scripts/preflight_data.py --data_root ./data --dataset mnist \
+    --classes "$CLASSES" --n_train $N_TRAIN --n_val $N_VAL --n_test $N_TEST \
+    || { echo "FATAL: data preflight failed -- not training"; exit 1; }
+
+set +e
+python3 train_gadi.py \
+    --model M4 --dataset mnist --classes "$CLASSES" --seed "$SEED" \
+    --noise_alpha 0.0 --n_obs "$W_OBS" --head_variant linear --loss ce \
+    --deterministic --save_predictions \
+    --n_train $N_TRAIN --n_val $N_VAL --n_test $N_TEST \
+    --max_epochs $MAX_EPOCHS --patience $PATIENCE \
+    --output_dir "./$OUT" --data_root ./data \
+    --checkpoint_dir "$CKPT" \
+    --time_budget_hours "$BUDGET" $FLAGS
+RC=$?
+set -e
+
+if [ $RC -eq 99 ]; then
+  if [ "$CONT" -ge 3 ]; then echo "=== FATAL: time budget hit $CONT times ==="; echo "=== Job end: $(date) rc=99 ==="; exit 1; fi
+  echo "Time budget reached -- continuation $((CONT+1))/3. NOT bit-reproducible: flag it."
+  cd "$PBS_O_WORKDIR"
+  qsub -N "${PBS_JOBNAME}" -l walltime=$WALLTIME \
+       -v ARM=$ARM,K=$K,TAG=$TAG,N=$N,MODEL=$MODEL,SEED=$SEED,OUT=$OUT,CONT=$((CONT+1)) run16b.pbs
+  echo "=== Job end: $(date) rc=99 (continued) ==="
+  exit 0
+fi
+[ $RC -eq 0 ] && rm -rf "$CKPT"           # inodes: checkpoints are only used inside the job (v15 A2)
+echo "=== Job end: $(date) rc=$RC ==="
+exit $RC

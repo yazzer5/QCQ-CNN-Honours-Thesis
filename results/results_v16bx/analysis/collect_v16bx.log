@@ -1,0 +1,37 @@
+Loaded 50 runs (M4trim, BFRZZ new; M2, M4 v14; BFR v16b). Max |acc from predictions - test_acc| = 0.0e+00 pp
+
+K=10, N=50: accuracy (%), mean +- seed SD, n = 10; params
+  M2       47.01 +- 6.45   [min 35.1, max 54.3]   params 1766   train@best 94.0  gap 47.0
+  M4       65.89 +- 2.48   [min 60.9, max 69.8]   params 1799   train@best 92.2  gap 26.3
+  M4trim   63.35 +- 3.07   [min 59.0, max 67.5]   params 1643   train@best 88.9  gap 25.5
+  BFR      61.23 +- 5.17   [min 51.1, max 70.5]   params 1799   train@best 87.0  gap 25.7
+  BFRZZ    59.78 +- 5.23   [min 49.2, max 66.8]   params 1799   train@best 82.9  gap 23.1
+
+PRIMARY (paired over seeds, Holm over the 3 contrasts)
+  C1 = BFR - M4trim   -2.12 [-4.72, +0.47]  p=0.0968  p_holm=0.194  MDE=3.61  not detected
+  C2 = M4trim - M4    -2.53 [-5.07, +0.00]  p=0.0501  p_holm=0.15  MDE=3.53  not detected
+  C3 = BFRZZ - BFR    -1.45 [-4.85, +1.95]  p=0.36  p_holm=0.36  MDE=4.72  not detected
+  check: C1 + C2 = -4.66 = BFR - M4 = -4.66 (v16b: -4.66); |diff| 0.0e+00
+
+PRE-REGISTERED PREDICTIONS (A3)
+  E1  M4trim - M4 = -2.53 (needs <= -2.3 and detected; Holm p=0.15); share of BFR - M4 explained by the trim = 54% -> direction only (threshold met, not detected) -- not confirmed
+  E2  BFRZZ - BFR = -1.45 (needs <= -5.0 and detected; Holm p=0.36) -> FAILS
+
+SECONDARY (uncorrected): fit / gap decomposition, contrast = fit part + gap part
+  C1 = BFR - M4trim  fit  -1.94 [-4.68, +0.80] p=0.14   gap part  -0.18 [-3.93, +3.56] p=0.91
+  C2 = M4trim - M4   fit  -3.28 [-9.80, +3.24] p=0.28   gap part  +0.74 [-6.17, +7.66] p=0.81
+  C3 = BFRZZ - BFR   fit  -4.10 [-7.71, -0.49] p=0.03   gap part  +2.65 [-0.90, +6.20] p=0.13
+  D4 = BFR - M4      fit  -5.22 [-10.80, +0.36] p=0.064   gap part  +0.56 [-4.77, +5.89] p=0.82
+  BFRZZ - M4         fit  -9.32 [-14.24, -4.40] p=0.002   gap part  +3.21 [-4.16, +10.58] p=0.35
+  seed SD of test accuracy: M2 6.45  M4 2.48  M4trim 3.07  BFR 5.17  BFRZZ 5.23
+  descriptive: BFRZZ - M2 +12.77, BFRZZ - M4 -6.11, M4trim - M2 +16.35, BFR - M2 +14.22
+  BFR    best checkpoint: |g| median 1.25, s median 1.184 [1.024, 1.369], |g|.|W_q| median 5.25 [3.26, 8.82]
+  BFRZZ  best checkpoint: |g| median 1.35, s median 1.429 [1.160, 1.524], |g|.|W_q| median 5.29 [3.96, 10.57]
+
+Reading (pre-registered, A3):
+  E1 not confirmed -> the trim does not explain half of the deficit; C1 = BFR - M4trim = -2.12 [-4.72, +0.47] (not detected, MDE 3.61)
+  E2 not confirmed -> no evidence that the product term on bounded inputs carries the ZZ cost; the v16b recovery
+  is then attributed to bounding / gating / the residual form (C3 = -1.45 [-4.85, +1.95], MDE 4.72).
+  Scope: one cell (K=10, N=50), n = 10, MNIST. A3 was written after v16b's results were read, before any ext job.
+
+Wrote v16bx_runs.csv, v16bx_contrasts.csv, v16bx_decomp.csv, v16bx_gs.csv

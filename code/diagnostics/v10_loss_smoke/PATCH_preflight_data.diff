@@ -1,0 +1,102 @@
+--- qcq_cnn_v10/scripts/preflight_data.py	2026-08-12 23:21:22.000000000 +0000
++++ v10_loss_smoke/scripts/preflight_data.py	2026-08-13 01:06:38.474225091 +0000
+@@ -23,6 +23,16 @@
+ 
+ Usage:
+     python scripts/preflight_data.py --data_root ./data --classes 0,6
++    python scripts/preflight_data.py --data_root ./data --dataset mnist \
++        --classes 0,1,2,3,4,5,6,7,8,9 --n_test 2000
++
++FIX (2026-08-13): step 4 was a v7 leftover. It hardcoded Fashion-MNIST,
++demanded EXACTLY two distinct classes, and checked per-class counts against
++the binary protocol's 3125 train / 500 test. Any 10-class invocation failed
++with "invalid class pair". Because run10_mnist10_grid.pbs calls this with
++`|| exit 1`, every job in the v10 grid would have died before training
++started. Step 4 now takes --dataset, accepts 2-10 classes, and derives the
++per-class requirement from the protocol split rather than hardcoding it.
+ """
+ import argparse
+ import gzip
+@@ -67,7 +77,21 @@
+     ap = argparse.ArgumentParser()
+     ap.add_argument("--data_root", default="./data")
+     ap.add_argument("--classes", default="0,6",
+-                    help="Fashion-MNIST class pair to sanity-check, e.g. 0,6")
++                    help="Comma-separated class labels to sanity-check. Two "
++                         "for a binary task (0,6), ten for full MNIST "
++                         "(0,1,2,3,4,5,6,7,8,9).")
++    ap.add_argument("--dataset", choices=["mnist", "fashion_mnist"],
++                    default="fashion_mnist",
++                    help="Which dataset the classes belong to. Defaults to "
++                         "fashion_mnist for backwards compatibility with the "
++                         "v7-v9 invocations.")
++    ap.add_argument("--n_train", type=int, default=5000)
++    ap.add_argument("--n_val", type=int, default=1250)
++    ap.add_argument("--n_test", type=int, default=1000,
++                    help="Total test images. Per-class requirement is this "
++                         "divided by the number of classes -- must match what "
++                         "is passed to train_gadi.py, or the preflight checks "
++                         "a different requirement from the one training uses.")
+     args = ap.parse_args()
+ 
+     root = Path(args.data_root)
+@@ -122,30 +146,45 @@
+         loaded[name] = (tr, te)
+         print(f"      {name:13s} train={len(tr):,}  test={len(te):,}")
+ 
+-    # ---- 4. the requested class pair is actually populated ---------------
+-    print(f"\n[4/4] Checking Fashion-MNIST class pair {args.classes}")
++    # ---- 4. the requested classes are actually populated ----------------
++    ds_key = "MNIST" if args.dataset == "mnist" else "FashionMNIST"
++    print(f"\n[4/4] Checking {ds_key} classes {args.classes}")
+     try:
+-        pair = tuple(int(v) for v in args.classes.split(","))
++        classes = tuple(int(v) for v in args.classes.split(","))
+     except ValueError:
+-        fail(f"could not parse --classes {args.classes!r}; expected 'a,b'")
+-    if len(pair) != 2 or not all(0 <= c <= 9 for c in pair) or pair[0] == pair[1]:
+-        fail(f"invalid class pair {pair}; need two distinct labels in 0-9")
+-
+-    tr, te = loaded["FashionMNIST"]
+-    # Protocol needs 5000 train + 1250 val = 6250 total, balanced -> 3125/class.
+-    need_train, need_test = 3125, 500
+-    for c in pair:
++        fail(f"could not parse --classes {args.classes!r}; expected "
++             f"comma-separated integers, e.g. '0,6' or '0,1,2,3,4,5,6,7,8,9'")
++    if not 2 <= len(classes) <= 10:
++        fail(f"got {len(classes)} classes {classes}; need between 2 and 10")
++    if len(set(classes)) != len(classes):
++        fail(f"duplicate labels in {classes}")
++    if not all(0 <= c <= 9 for c in classes):
++        fail(f"labels out of range in {classes}; must be 0-9")
++
++    n_cls = len(classes)
++    # Mirrors load_dataset() in train_gadi.py exactly: the train+val pool and
++    # the test draw are both balanced, so each class supplies a 1/n_cls share.
++    need_train = (args.n_train + args.n_val) // n_cls
++    need_test = args.n_test // n_cls
++    print(f"      protocol: {args.n_train}+{args.n_val} train+val and "
++          f"{args.n_test} test across {n_cls} classes "
++          f"-> need {need_train} train and {need_test} test PER CLASS")
++
++    tr, te = loaded[ds_key]
++    names = FASHION_NAMES if args.dataset == "fashion_mnist" else {i: f"digit {i}" for i in range(10)}
++    for c in classes:
+         n_tr = int((tr.targets == c).sum())
+         n_te = int((te.targets == c).sum())
+-        label = FASHION_NAMES.get(c, "?")
++        label = names.get(c, "?")
+         print(f"      class {c} ({label:12s}) train={n_tr:,}  test={n_te:,}")
+         if n_tr < need_train:
+             fail(f"class {c} has {n_tr} train images, protocol needs {need_train}")
+         if n_te < need_test:
+             fail(f"class {c} has {n_te} test images, protocol needs {need_test}")
+ 
+-    print(f"\n  PREFLIGHT PASSED -- {FASHION_NAMES.get(pair[0],'?')} vs "
+-          f"{FASHION_NAMES.get(pair[1],'?')} is ready. No network required.\n")
++    print(f"\n  PREFLIGHT PASSED -- {ds_key} {n_cls}-class "
++          f"({', '.join(str(c) for c in classes)}) is ready. "
++          f"No network required.\n")
+ 
+ 
+ if __name__ == "__main__":

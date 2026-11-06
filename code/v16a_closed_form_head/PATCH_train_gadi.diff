@@ -1,0 +1,146 @@
+--- qcq_cnn_v10/train_gadi.py	2026-08-12 23:23:32.000000000 +0000
++++ v10_grid/train_gadi.py	2026-08-13 05:12:56.377815112 +0000
+@@ -207,6 +207,39 @@
+ HEAD_VARIANT  = "linear"  # "linear" | "tanh" -- classical mid-map activation
+ SAVE_PREDICTIONS = False  # set from --save_predictions
+ 
++# LOSS FUNCTION (v10-loss-smoke, 2026-08-13). Default "bce" reproduces
++# v6-v10 exactly: sigmoid on each logit independently, then BCE against the
++# one-hot target. "ce" is softmax cross-entropy, i.e. Long et al. eq (21).
++#
++# WHY THIS IS A SWITCH AND NOT AN EDIT: at 2 classes the two are close
++# enough that the binary grids are unaffected either way, so nothing about
++# v6-v9 is in question. At 10 classes they are not close. Under BCE each of
++# the ten outputs is scored independently, so nine of the ten targets are
++# "no" for every image and the loss pushes every logit toward
++# sigmoid^-1(0.1) ~= -2.2. M1/M2's logits are fc3(Linear(3,10)) applied to
++# QNN expectations bounded in [-1,1]; M3/M4's head is unbounded. That is an
++# asymmetric handicap on exactly the two models the primary contrast sits
++# between. Softmax normalises across classes instead, so only the ARGMAX
++# matters and the bounded range stops being a constraint.
++#
++# Local synthetic-data evidence (CPU, 1 seed, 15 epochs, not MNIST):
++#   BCE: M1 11.6% M2 15.6% M3 46.2% M4 50.0%
++#   CE : M1 53.6% M2 66.6% M3 100%  M4 98.6%
++# and at 60 epochs BCE gave M2 BELOW M1, reversing the sign of the primary
++# contrast. That evidence is suggestive, not decisive -- the 10-class
++# diagnostic reached 72.9%/66.5% under BCE on real MNIST, so the collapse
++# is clearly not total there. Hence: measure it, do not assume it.
++LOSS = "bce"
++
++
++def classification_loss(logits, y):
++    """Training loss. Single definition, used by the epoch loop AND by every
++    diagnostic that computes a loss, so the two can never silently diverge."""
++    if LOSS == "ce":
++        return F.cross_entropy(logits, y)
++    y_onehot = F.one_hot(y, num_classes=N_CLASSES).float()
++    return F.binary_cross_entropy(torch.sigmoid(logits), y_onehot)
++
+ SEEDS      = [42, 43, 44, 45, 46]
+ MAX_EPOCHS = 100
+ PATIENCE   = 10
+@@ -751,12 +784,10 @@
+     total_loss, correct, n = 0.0, 0, 0
+     for x, y in loader:
+         x, y = x.to(device), y.to(device)
+-        y_onehot = F.one_hot(y, num_classes=N_CLASSES).float()
+         if train:
+             optimizer.zero_grad()
+         logits = model(x)
+-        probs = torch.sigmoid(logits)
+-        loss = F.binary_cross_entropy(probs, y_onehot)
++        loss = classification_loss(logits, y)
+         if train:
+             loss.backward()
+             if grad_log is not None:
+@@ -864,8 +895,7 @@
+     x, y = x.to(device), y.to(device)
+     model.zero_grad()
+     logits = model(x)
+-    loss = F.binary_cross_entropy(
+-        torch.sigmoid(logits), F.one_hot(y, num_classes=N_CLASSES).float())
++    loss = classification_loss(logits, y)
+     loss.backward()
+ 
+     dead = []
+@@ -1359,6 +1389,14 @@
+                          "JSON. Enables McNemar's test, which uses paired per-image "
+                          "outcomes instead of 5 averaged scalars and is far more "
+                          "sensitive to the ~1 pp effects this project is chasing.")
++    ap.add_argument("--loss", choices=["bce", "ce"], default="bce",
++                    help="Training loss. 'bce' (DEFAULT, unchanged from v6-v10) "
++                         "scores each of the N_CLASSES logits independently with "
++                         "sigmoid + binary cross-entropy against the one-hot "
++                         "target. 'ce' is softmax cross-entropy (Long et al. "
++                         "eq 21). Identical models, identical parameter counts, "
++                         "identical data -- ONLY the scoring changes. Defaults to "
++                         "'bce' so that omitting this flag reproduces v10 exactly.")
+     ap.add_argument("--qnn_backend", choices=["torch", "qiskit"], default="torch",
+                      help="QNN back-end implementation for M1/M2. 'torch' "
+                           "(default) simulates the circuit as batched tensor "
+@@ -1393,7 +1431,7 @@
+     # min_epochs 30) unless explicitly passed -- so run_chain_link.pbs and
+     # every existing Gadi invocation are completely unaffected by this.
+     global N_TRAIN, N_VAL, N_TEST, MAX_EPOCHS, PATIENCE, MIN_EPOCHS_QUANTUM_FRONTEND, BATCH_SIZE, DROPOUT_RATE, QNN_BACKEND, WEIGHT_DECAY, CLASS_OVERRIDE
+-    global N_CLASSES, N_OBS, HEAD_VARIANT, SAVE_PREDICTIONS
++    global N_CLASSES, N_OBS, HEAD_VARIANT, SAVE_PREDICTIONS, LOSS
+     if args.n_train is not None:
+         N_TRAIN = args.n_train
+     if args.n_val is not None:
+@@ -1426,6 +1464,7 @@
+     N_OBS = args.n_obs if args.n_obs is not None else (3 if N_CLASSES > 2 else 1)
+     HEAD_VARIANT = args.head_variant
+     SAVE_PREDICTIONS = args.save_predictions
++    LOSS = args.loss
+     if N_CLASSES > 2 and N_OBS == 1:
+         print("[WARNING] N_CLASSES > 2 with a single observable. The 10-class "
+               "diagnostic showed this is the measurement bottleneck, not a "
+@@ -1433,6 +1472,11 @@
+               "explicitly.", flush=True)
+     print(f"[MULTICLASS] n_classes={N_CLASSES} n_obs={N_OBS} "
+           f"head_variant={HEAD_VARIANT}", flush=True)
++    print(f"[LOSS] {LOSS} "
++          + ("(softmax cross-entropy, Long et al. eq 21 -- DEVIATION from "
++             "v6-v10, which used bce)" if LOSS == "ce" else
++             "(sigmoid + binary cross-entropy on one-hot -- unchanged from "
++             "v6-v10)"), flush=True)
+ 
+     # ── DETERMINISM (v10) ────────────────────────────────────────────────
+     if args.deterministic:
+@@ -1462,6 +1506,27 @@
+               f"with full-scale (5000/1250/1000, 100 max epochs) results.",
+               flush=True)
+ 
++    # ── PROTOCOL READBACK ────────────────────────────────────────────────
++    # The v10 PBS script echoed a HARDCODED "[PROTOCOL v10] 5000/1250/2000,
++    # 200 epochs, ..." line, and the handover named that line as the
++    # integrity check to rely on once REDUCED-SCALE started firing. A
++    # hardcoded echo prints the same text whether or not those are the
++    # values Python actually resolved, so it is an assertion, not a
++    # readback, and it cannot fail. That is the exact defect shape the
++    # integrity gate exists to catch. This prints the resolved variables
++    # themselves, so a mismatch between intent and behaviour is visible.
++    print(f"[PROTOCOL RESOLVED] n_train={N_TRAIN} n_val={N_VAL} "
++          f"n_test={N_TEST} max_epochs={MAX_EPOCHS} patience={PATIENCE} "
++          f"min_epochs_quantum={MIN_EPOCHS_QUANTUM_FRONTEND} "
++          f"batch_size={BATCH_SIZE} lr={LR} weight_decay={WEIGHT_DECAY} "
++          f"dropout={DROPOUT_RATE} n_classes={N_CLASSES} n_obs={N_OBS} "
++          f"head_variant={HEAD_VARIANT} loss={LOSS} "
++          f"qnn_backend={QNN_BACKEND} "
++          f"deterministic={bool(args.deterministic)} "
++          f"save_predictions={bool(args.save_predictions)} "
++          f"classes={list(CLASS_OVERRIDE) if CLASS_OVERRIDE else 'default'}",
++          flush=True)
++
+     set_seed(args.seed)
+     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+     print(f"Device: {device}", flush=True)
+@@ -1536,6 +1601,7 @@
+         "n_classes": N_CLASSES,
+         "n_obs": N_OBS,
+         "head_variant": HEAD_VARIANT,
++        "loss": LOSS,
+         "code_version": CODE_VERSION,
+         "protocol": {
+             "code_version": CODE_VERSION,

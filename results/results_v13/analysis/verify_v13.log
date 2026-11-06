@@ -1,0 +1,185 @@
+
+========================================================================
+1. n_obs = 1 and 3 UNCHANGED vs pre-patch code (bit-exact)
+========================================================================
+  PASS  n_obs=1 seed=42 float32: torch.equal(new, old)   max diff 0.0e+00
+  PASS  n_obs=1 seed=42 float64: torch.equal(new, old)   max diff 0.0e+00
+  PASS  n_obs=1 seed=42: gradients bit-identical
+  PASS  n_obs=1 seed=47 float32: torch.equal(new, old)   max diff 0.0e+00
+  PASS  n_obs=1 seed=47 float64: torch.equal(new, old)   max diff 0.0e+00
+  PASS  n_obs=1 seed=47: gradients bit-identical
+  PASS  n_obs=3 seed=42 float32: torch.equal(new, old)   max diff 0.0e+00
+  PASS  n_obs=3 seed=42 float64: torch.equal(new, old)   max diff 0.0e+00
+  PASS  n_obs=3 seed=42: gradients bit-identical
+  PASS  n_obs=3 seed=47 float32: torch.equal(new, old)   max diff 0.0e+00
+  PASS  n_obs=3 seed=47 float64: torch.equal(new, old)   max diff 0.0e+00
+  PASS  n_obs=3 seed=47: gradients bit-identical
+  (no CUDA on this node: GPU path is covered by the reproduction smoke job)
+
+========================================================================
+2. NEW READOUTS: shapes, ranges, nesting, physics
+========================================================================
+  PASS  n_obs=3: shape (B,3)
+  PASS  n_obs=3: all expectations in [-1,1]
+  PASS  n_obs=3: 6 circuit parameters (readout adds none)
+  PASS  n_obs=6: shape (B,6)
+  PASS  n_obs=6: all expectations in [-1,1]
+  PASS  n_obs=6: 6 circuit parameters (readout adds none)
+  PASS  n_obs=15: shape (B,15)
+  PASS  n_obs=15: all expectations in [-1,1]
+  PASS  n_obs=15: 6 circuit parameters (readout adds none)
+  PASS  w6 first 3 columns == w3 exactly
+  PASS  w15 first 6 columns == w6 exactly
+  PASS  sum of all 15 Pauli expectations^2 == 3 (pure 2-qubit state)   range [3.000000000000, 3.000000000000]
+  PASS  names table matches widths
+  PASS  n_obs=15 float32 forward dtype float32
+  PASS  n_obs=15: gradient reaches circuit weights and inputs
+
+========================================================================
+3. STRUCTURAL CLAIMS IN THE PRE-REGISTRATION (real circuit)
+========================================================================
+  PASS  w3 readout has 3 independent features   3
+  PASS  w6 readout has 6 independent features (all cosine terms)   6
+  PASS  w15 readout has 12 independent features (6 cosine + 6 sine)   12
+  PASS  w3: circuit weights CHANGE which features are visible   overlap 0.4837
+  PASS  w6: feature span independent of circuit weights   overlap 1.000000
+  PASS  w15: feature span independent of circuit weights   overlap 1.000000
+
+========================================================================
+4. train_gadi MODELS: build, budget, forward/backward at every v13 cell
+========================================================================
+[VERIFIED] M1 params: front=0 backbone=1464 back_end=156 total=1620 (expected 1620) OK
+  PASS  K=5 w=3 M1: built 1620 == expected_params 1620
+  PASS  K=5 w=3 M1: output (8,5)
+  PASS  K=5 w=3 M1: every trainable tensor has a gradient   []
+[VERIFIED] M2 params: front=6 backbone=1464 back_end=156 total=1626 (expected 1626) OK
+  PASS  K=5 w=3 M2: built 1626 == expected_params 1626
+  PASS  K=5 w=3 M2: matches v10/v12 VERIFIED count 1626
+  PASS  K=5 w=3 M2: output (8,5)
+  PASS  K=5 w=3 M2: every trainable tensor has a gradient   []
+[VERIFIED] M3 params: front=6 backbone=1464 back_end=159 total=1629 (expected 1629) OK
+  PASS  K=5 w=3 M3: built 1629 == expected_params 1629
+  PASS  K=5 w=3 M3: matches v10/v12 VERIFIED count 1629
+  PASS  K=5 w=3 M3: output (8,5)
+  PASS  K=5 w=3 M3: every trainable tensor has a gradient   []
+[VERIFIED] M4 params: front=0 backbone=1464 back_end=159 total=1623 (expected 1623) OK
+  PASS  K=5 w=3 M4: built 1623 == expected_params 1623
+  PASS  K=5 w=3 M4: output (8,5)
+  PASS  K=5 w=3 M4: every trainable tensor has a gradient   []
+[VERIFIED] M1 params: front=0 backbone=1464 back_end=171 total=1635 (expected 1635) OK
+  PASS  K=5 w=6 M1: built 1635 == expected_params 1635
+  PASS  K=5 w=6 M1: output (8,5)
+  PASS  K=5 w=6 M1: every trainable tensor has a gradient   []
+[VERIFIED] M2 params: front=6 backbone=1464 back_end=171 total=1641 (expected 1641) OK
+  PASS  K=5 w=6 M2: built 1641 == expected_params 1641
+  PASS  K=5 w=6 M2: output (8,5)
+  PASS  K=5 w=6 M2: every trainable tensor has a gradient   []
+[VERIFIED] M3 params: front=6 backbone=1464 back_end=183 total=1653 (expected 1653) OK
+  PASS  K=5 w=6 M3: built 1653 == expected_params 1653
+  PASS  K=5 w=6 M3: output (8,5)
+  PASS  K=5 w=6 M3: every trainable tensor has a gradient   []
+[VERIFIED] M4 params: front=0 backbone=1464 back_end=183 total=1647 (expected 1647) OK
+  PASS  K=5 w=6 M4: built 1647 == expected_params 1647
+  PASS  K=5 w=6 M4: output (8,5)
+  PASS  K=5 w=6 M4: every trainable tensor has a gradient   []
+[VERIFIED] M1 params: front=0 backbone=1464 back_end=216 total=1680 (expected 1680) OK
+  PASS  K=5 w=15 M1: built 1680 == expected_params 1680
+  PASS  K=5 w=15 M1: output (8,5)
+  PASS  K=5 w=15 M1: every trainable tensor has a gradient   []
+[VERIFIED] M2 params: front=6 backbone=1464 back_end=216 total=1686 (expected 1686) OK
+  PASS  K=5 w=15 M2: built 1686 == expected_params 1686
+  PASS  K=5 w=15 M2: output (8,5)
+  PASS  K=5 w=15 M2: every trainable tensor has a gradient   []
+[VERIFIED] M3 params: front=6 backbone=1464 back_end=255 total=1725 (expected 1725) OK
+  PASS  K=5 w=15 M3: built 1725 == expected_params 1725
+  PASS  K=5 w=15 M3: output (8,5)
+  PASS  K=5 w=15 M3: every trainable tensor has a gradient   []
+[VERIFIED] M4 params: front=0 backbone=1464 back_end=255 total=1719 (expected 1719) OK
+  PASS  K=5 w=15 M4: built 1719 == expected_params 1719
+  PASS  K=5 w=15 M4: output (8,5)
+  PASS  K=5 w=15 M4: every trainable tensor has a gradient   []
+[VERIFIED] M1 params: front=0 backbone=1464 back_end=176 total=1640 (expected 1640) OK
+  PASS  K=10 w=3 M1: built 1640 == expected_params 1640
+  PASS  K=10 w=3 M1: output (8,10)
+  PASS  K=10 w=3 M1: every trainable tensor has a gradient   []
+[VERIFIED] M2 params: front=6 backbone=1464 back_end=176 total=1646 (expected 1646) OK
+  PASS  K=10 w=3 M2: built 1646 == expected_params 1646
+  PASS  K=10 w=3 M2: matches v10/v12 VERIFIED count 1646
+  PASS  K=10 w=3 M2: output (8,10)
+  PASS  K=10 w=3 M2: every trainable tensor has a gradient   []
+[VERIFIED] M3 params: front=6 backbone=1464 back_end=179 total=1649 (expected 1649) OK
+  PASS  K=10 w=3 M3: built 1649 == expected_params 1649
+  PASS  K=10 w=3 M3: matches v10/v12 VERIFIED count 1649
+  PASS  K=10 w=3 M3: output (8,10)
+  PASS  K=10 w=3 M3: every trainable tensor has a gradient   []
+[VERIFIED] M4 params: front=0 backbone=1464 back_end=179 total=1643 (expected 1643) OK
+  PASS  K=10 w=3 M4: built 1643 == expected_params 1643
+  PASS  K=10 w=3 M4: output (8,10)
+  PASS  K=10 w=3 M4: every trainable tensor has a gradient   []
+[VERIFIED] M1 params: front=0 backbone=1464 back_end=206 total=1670 (expected 1670) OK
+  PASS  K=10 w=6 M1: built 1670 == expected_params 1670
+  PASS  K=10 w=6 M1: output (8,10)
+  PASS  K=10 w=6 M1: every trainable tensor has a gradient   []
+[VERIFIED] M2 params: front=6 backbone=1464 back_end=206 total=1676 (expected 1676) OK
+  PASS  K=10 w=6 M2: built 1676 == expected_params 1676
+  PASS  K=10 w=6 M2: output (8,10)
+  PASS  K=10 w=6 M2: every trainable tensor has a gradient   []
+[VERIFIED] M3 params: front=6 backbone=1464 back_end=218 total=1688 (expected 1688) OK
+  PASS  K=10 w=6 M3: built 1688 == expected_params 1688
+  PASS  K=10 w=6 M3: output (8,10)
+  PASS  K=10 w=6 M3: every trainable tensor has a gradient   []
+[VERIFIED] M4 params: front=0 backbone=1464 back_end=218 total=1682 (expected 1682) OK
+  PASS  K=10 w=6 M4: built 1682 == expected_params 1682
+  PASS  K=10 w=6 M4: output (8,10)
+  PASS  K=10 w=6 M4: every trainable tensor has a gradient   []
+[VERIFIED] M1 params: front=0 backbone=1464 back_end=296 total=1760 (expected 1760) OK
+  PASS  K=10 w=15 M1: built 1760 == expected_params 1760
+  PASS  K=10 w=15 M1: output (8,10)
+  PASS  K=10 w=15 M1: every trainable tensor has a gradient   []
+[VERIFIED] M2 params: front=6 backbone=1464 back_end=296 total=1766 (expected 1766) OK
+  PASS  K=10 w=15 M2: built 1766 == expected_params 1766
+  PASS  K=10 w=15 M2: output (8,10)
+  PASS  K=10 w=15 M2: every trainable tensor has a gradient   []
+[VERIFIED] M3 params: front=6 backbone=1464 back_end=335 total=1805 (expected 1805) OK
+  PASS  K=10 w=15 M3: built 1805 == expected_params 1805
+  PASS  K=10 w=15 M3: output (8,10)
+  PASS  K=10 w=15 M3: every trainable tensor has a gradient   []
+[VERIFIED] M4 params: front=0 backbone=1464 back_end=335 total=1799 (expected 1799) OK
+  PASS  K=10 w=15 M4: built 1799 == expected_params 1799
+  PASS  K=10 w=15 M4: output (8,10)
+  PASS  K=10 w=15 M4: every trainable tensor has a gradient   []
+
+  Parameter table (record in MNIST_LOG.md):
+    K   w model  front  backbone  back  total
+    5   3    M1      0      1464   156   1620
+    5   3    M2      6      1464   156   1626
+    5   3    M3      6      1464   159   1629
+    5   3    M4      0      1464   159   1623
+    5   6    M1      0      1464   171   1635
+    5   6    M2      6      1464   171   1641
+    5   6    M3      6      1464   183   1653
+    5   6    M4      0      1464   183   1647
+    5  15    M1      0      1464   216   1680
+    5  15    M2      6      1464   216   1686
+    5  15    M3      6      1464   255   1725
+    5  15    M4      0      1464   255   1719
+   10   3    M1      0      1464   176   1640
+   10   3    M2      6      1464   176   1646
+   10   3    M3      6      1464   179   1649
+   10   3    M4      0      1464   179   1643
+   10   6    M1      0      1464   206   1670
+   10   6    M2      6      1464   206   1676
+   10   6    M3      6      1464   218   1688
+   10   6    M4      0      1464   218   1682
+   10  15    M1      0      1464   296   1760
+   10  15    M2      6      1464   296   1766
+   10  15    M3      6      1464   335   1805
+   10  15    M4      0      1464   335   1799
+  K=5 w=6: M3-M2 = +12 params (+0.73%)  [expected and pre-registered: the classical 2->w map has 3w params vs the circuit's 6]
+  K=5 w=15: M3-M2 = +39 params (+2.31%)  [expected and pre-registered: the classical 2->w map has 3w params vs the circuit's 6]
+  K=10 w=6: M3-M2 = +12 params (+0.72%)  [expected and pre-registered: the classical 2->w map has 3w params vs the circuit's 6]
+  K=10 w=15: M3-M2 = +39 params (+2.21%)  [expected and pre-registered: the classical 2->w map has 3w params vs the circuit's 6]
+
+========================================================================
+ALL CHECKS PASSED
+========================================================================

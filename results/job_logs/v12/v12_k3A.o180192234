@@ -1,0 +1,187 @@
+PWD=/g/data/wa66/yh2481/qcq_cnn_v12
+-rw-r--r-- 1 yh2481 wa66  8554 Aug 13 15:12 qnn_torch.py
+-rw-r--r-- 1 yh2481 wa66 11494 Aug 13 15:12 quanv_torch.py
+-rw-r--r-- 1 yh2481 wa66 88518 Aug 13 15:12 train_gadi.py
+=== Job start: Wed Sep 30 14:16:22 AEST 2026 ===
+[V12] K=3 TAG=A CLASSES=1,4,9 MODEL=M1 SEED=46 CONT=0
+[V12] split train=1500 val=375 test=600 out=results_v12_k3_A
+Data root: /g/data/wa66/yh2481/qcq_cnn_v12/data
+
+[1/4] Verifying staged archives
+      ok       MNIST/raw/train-images-idx3-ubyte.gz  (9,912,422 bytes)
+      ok       MNIST/raw/train-labels-idx1-ubyte.gz  (28,881 bytes)
+      ok       MNIST/raw/t10k-images-idx3-ubyte.gz  (1,648,877 bytes)
+      ok       MNIST/raw/t10k-labels-idx1-ubyte.gz  (4,542 bytes)
+      ok       FashionMNIST/raw/train-images-idx3-ubyte.gz  (26,421,880 bytes)
+      ok       FashionMNIST/raw/train-labels-idx1-ubyte.gz  (29,515 bytes)
+      ok       FashionMNIST/raw/t10k-images-idx3-ubyte.gz  (4,422,102 bytes)
+      ok       FashionMNIST/raw/t10k-labels-idx1-ubyte.gz  (5,148 bytes)
+
+[2/4] Extracting archives (so torchvision never enters download())
+      present  train-images-idx3-ubyte
+      present  train-labels-idx1-ubyte
+      present  t10k-images-idx3-ubyte
+      present  t10k-labels-idx1-ubyte
+      present  train-images-idx3-ubyte
+      present  train-labels-idx1-ubyte
+      present  t10k-images-idx3-ubyte
+      present  t10k-labels-idx1-ubyte
+
+[3/4] Opening datasets with download=False (offline proof)
+      MNIST         train=60,000  test=10,000
+      FashionMNIST  train=60,000  test=10,000
+
+[4/4] Checking MNIST classes 1,4,9
+      protocol: 1500+375 train+val and 600 test across 3 classes -> need 625 train and 200 test PER CLASS
+      class 1 (digit 1     ) train=6,742  test=1,135
+      class 4 (digit 4     ) train=5,842  test=982
+      class 9 (digit 9     ) train=5,949  test=1,009
+
+  PREFLIGHT PASSED -- MNIST 3-class (1, 4, 9) is ready. No network required.
+
+[BACKEND] torch-native quantum front-end (exact batched tensor algebra, autograd gradients == parameter-shift).
+[MULTICLASS] n_classes=3 n_obs=3 head_variant=linear
+[LOSS] ce (softmax cross-entropy, Long et al. eq 21 -- DEVIATION from v6-v10, which used bce)
+[DETERMINISM] torch deterministic algorithms ENABLED. Two runs with the same seed should now agree exactly; if they do not, something else is injecting nondeterminism and must be found before the grid is trusted.
+[PROTOCOL] REDUCED-SCALE / FEASIBILITY RUN -- not the locked full protocol. N_TRAIN=1500 N_VAL=375 N_TEST=600 MAX_EPOCHS=200 PATIENCE=20 MIN_EPOCHS_QUANTUM_FRONTEND=30. Label any results from this run accordingly -- do not mix with full-scale (5000/1250/1000, 100 max epochs) results.
+[PROTOCOL RESOLVED] n_train=1500 n_val=375 n_test=600 max_epochs=200 patience=20 min_epochs_quantum=30 batch_size=32 lr=0.001 weight_decay=0.0001 dropout=0.0 n_classes=3 n_obs=3 head_variant=linear loss=ce qnn_backend=torch deterministic=True save_predictions=True classes=[1, 4, 9]
+Device: cuda
+[CODE VERSION] v10
+Run: model=M1 dataset=mnist seed=46 noise_alpha=0.0 batch_size=32 lr=0.001 weight_decay=0.0001 dropout=0.0
+[CLASS PAIR] trainer received classes=[1, 4, 9]
+[VERIFIED] M1 params: front=0 backbone=1464 back_end=148 total=1612 (expected 1612) OK
+[DEVICE] whole model on cuda (front-end included -- v5 torch-native quantum simulation)
+[DATA] mnist: 3 classes, pool=1875 test=600 (625 train+val and 200 test per class)
+Split sizes: train=1500 val=375 test=600
+[GRADCHECK] M1:
+  backbone.conv1.weight                    |grad|=1.262e-01
+  backbone.conv1.bias                      |grad|=2.888e-02
+  backbone.conv2.weight                    |grad|=2.084e-01
+  backbone.conv2.bias                      |grad|=5.563e-02
+  back_end.fc2.weight                      |grad|=2.188e-01
+  back_end.fc2.bias                        |grad|=8.389e-02
+  back_end.qnn.weight                      |grad|=3.995e-02
+  back_end.fc3.weight                      |grad|=1.065e-01
+  back_end.fc3.bias                        |grad|=1.719e-01
+[GRADCHECK] M1: all trainable tensors receive gradient. OK
+[OUTPUT DIVERSITY] M1: logits for 8 distinct samples (label in brackets):
+  sample 0  label=0  logits=[ 0.24670339  0.11883993 -0.08137996]
+  sample 1  label=1  logits=[ 0.34449375  0.13819817 -0.04779501]
+  sample 2  label=1  logits=[ 0.2607635   0.12052135 -0.08037464]
+  sample 3  label=0  logits=[ 0.29925042  0.12629558 -0.06040183]
+  sample 4  label=1  logits=[ 0.28488788  0.12541287 -0.09364361]
+  sample 5  label=2  logits=[ 0.06384125  0.11782724 -0.15369035]
+  sample 6  label=0  logits=[ 0.2930714   0.1251351  -0.06084082]
+  sample 7  label=2  logits=[ 0.16935946  0.11511503 -0.12389472]
+  per-class std across samples: [0.08907034 0.00720325 0.03556224]  (nonzero spread)
+[TRAIN/EVAL SHIFT] M1: dropout_rate=0.0
+  mean logit margin (class0-class1)  train-mode=+0.1462  eval-mode=+0.1462
+  predictions flipping between modes: 0/32
+[M1] epoch   1  train_acc=0.5727 val_acc=0.6373 (1.3s)  qnn_weight_drift=3.550e-02
+[M1] epoch   2  train_acc=0.6587 val_acc=0.6507 (1.3s)  qnn_weight_drift=6.365e-02
+[M1] epoch   3  train_acc=0.6613 val_acc=0.6533 (1.3s)  qnn_weight_drift=6.554e-02
+[OUTPUT DIVERSITY] M1 (after epoch 3): logits for 8 distinct samples (label in brackets):
+  sample 0  label=0  logits=[ 0.7232323   0.08296436 -0.15308341]
+  sample 1  label=0  logits=[ 0.7182441   0.11145003 -0.18696803]
+  sample 2  label=0  logits=[ 0.70961964  0.07417902 -0.14000346]
+  sample 3  label=0  logits=[ 0.711789    0.11519381 -0.18455982]
+  sample 4  label=2  logits=[-0.2138386   0.2322438   0.03692558]
+  sample 5  label=2  logits=[-0.26568404  0.24378662  0.04754272]
+  sample 6  label=0  logits=[ 0.72109663  0.09656912 -0.17824209]
+  sample 7  label=2  logits=[0.04413766 0.15709576 0.02578688]
+  per-class std across samples: [0.4548436  0.06597585 0.10758767]  (nonzero spread)
+[TRAIN/EVAL SHIFT] M1 (after epoch 3): dropout_rate=0.0
+  mean logit margin (class0-class1)  train-mode=+0.0188  eval-mode=+0.0188
+  predictions flipping between modes: 0/32
+[M1] epoch   4  train_acc=0.6620 val_acc=0.6533 (1.2s)  qnn_weight_drift=6.339e-02
+[M1] epoch   5  train_acc=0.6640 val_acc=0.6533 (1.3s)  qnn_weight_drift=5.988e-02
+[M1] epoch   6  train_acc=0.6653 val_acc=0.6560 (1.3s)  qnn_weight_drift=5.742e-02
+[M1] epoch   7  train_acc=0.6833 val_acc=0.6933 (1.3s)  qnn_weight_drift=5.271e-02
+[M1] epoch   8  train_acc=0.7807 val_acc=0.8400 (1.3s)  qnn_weight_drift=4.804e-02
+[M1] epoch   9  train_acc=0.9100 val_acc=0.8987 (1.2s)  qnn_weight_drift=4.426e-02
+[M1] epoch  10  train_acc=0.9513 val_acc=0.9573 (1.2s)  qnn_weight_drift=5.519e-02
+[M1] epoch  11  train_acc=0.9720 val_acc=0.9707 (1.2s)  qnn_weight_drift=6.265e-02
+[M1] epoch  12  train_acc=0.9747 val_acc=0.9813 (1.2s)  qnn_weight_drift=5.397e-02
+[M1] epoch  13  train_acc=0.9827 val_acc=0.9813 (1.3s)  qnn_weight_drift=4.454e-02
+[M1] epoch  14  train_acc=0.9873 val_acc=0.9867 (1.3s)  qnn_weight_drift=3.507e-02
+[M1] epoch  15  train_acc=0.9880 val_acc=0.9813 (1.2s)  qnn_weight_drift=2.692e-02
+[OUTPUT DIVERSITY] M1 (after epoch 15): logits for 8 distinct samples (label in brackets):
+  sample 0  label=0  logits=[ 1.6950307  -0.768319   -0.29097718]
+  sample 1  label=2  logits=[-0.83360714  0.03495717  1.4133168 ]
+  sample 2  label=2  logits=[-0.6632409  -0.14504415  1.5028802 ]
+  sample 3  label=0  logits=[ 1.7087533  -0.6104083  -0.51619655]
+  sample 4  label=2  logits=[-0.8158739   0.18303615  1.1783193 ]
+  sample 5  label=0  logits=[ 1.6747749  -0.57817715 -0.5352542 ]
+  sample 6  label=1  logits=[-0.3580507   1.029696   -0.56003267]
+  sample 7  label=0  logits=[ 1.6211181  -0.831118   -0.13642156]
+  per-class std across samples: [1.2606966  0.6266614  0.93244815]  (nonzero spread)
+[TRAIN/EVAL SHIFT] M1 (after epoch 15): dropout_rate=0.0
+  mean logit margin (class0-class1)  train-mode=-0.0286  eval-mode=-0.0286
+  predictions flipping between modes: 0/32
+[M1] epoch  16  train_acc=0.9927 val_acc=0.9813 (1.3s)  qnn_weight_drift=1.966e-02
+[M1] epoch  17  train_acc=0.9927 val_acc=0.9867 (1.3s)  qnn_weight_drift=1.461e-02
+[M1] epoch  18  train_acc=0.9933 val_acc=0.9893 (1.3s)  qnn_weight_drift=1.080e-02
+[M1] epoch  19  train_acc=0.9953 val_acc=0.9867 (1.3s)  qnn_weight_drift=1.194e-02
+[M1] epoch  20  train_acc=0.9953 val_acc=0.9893 (1.3s)  qnn_weight_drift=7.681e-03
+[M1] epoch  21  train_acc=0.9973 val_acc=0.9893 (1.3s)  qnn_weight_drift=7.457e-03
+[M1] epoch  22  train_acc=0.9973 val_acc=0.9893 (1.3s)  qnn_weight_drift=8.311e-03
+[M1] epoch  23  train_acc=0.9973 val_acc=0.9893 (1.3s)  qnn_weight_drift=6.607e-03
+[M1] epoch  24  train_acc=0.9967 val_acc=0.9893 (1.3s)  qnn_weight_drift=5.911e-03
+[M1] epoch  25  train_acc=0.9973 val_acc=0.9893 (1.3s)  qnn_weight_drift=5.500e-03
+[OUTPUT DIVERSITY] M1 (after epoch 25): logits for 8 distinct samples (label in brackets):
+  sample 0  label=1  logits=[-0.82193655  1.8031964  -1.0921105 ]
+  sample 1  label=1  logits=[-0.8591226  1.7957236 -1.0668576]
+  sample 2  label=1  logits=[-0.38277864  1.4890771  -1.0872854 ]
+  sample 3  label=0  logits=[ 1.4048029  -0.42274463 -0.78101945]
+  sample 4  label=1  logits=[-0.7801093  1.5936581 -0.874431 ]
+  sample 5  label=1  logits=[-0.74909604  1.7434697  -1.0868049 ]
+  sample 6  label=2  logits=[-0.8897723  -0.36729372  2.422597  ]
+  sample 7  label=1  logits=[-0.7644105   1.3043009  -0.45727462]
+  per-class std across samples: [0.77771366 0.94858253 1.2025964 ]  (nonzero spread)
+[TRAIN/EVAL SHIFT] M1 (after epoch 25): dropout_rate=0.0
+  mean logit margin (class0-class1)  train-mode=-0.0443  eval-mode=-0.0443
+  predictions flipping between modes: 0/32
+[M1] epoch  26  train_acc=0.9973 val_acc=0.9840 (1.3s)  qnn_weight_drift=4.647e-03
+[M1] epoch  27  train_acc=0.9980 val_acc=0.9893 (1.3s)  qnn_weight_drift=6.014e-03
+[M1] epoch  28  train_acc=0.9993 val_acc=0.9893 (1.3s)  qnn_weight_drift=5.607e-03
+[M1] epoch  29  train_acc=0.9993 val_acc=0.9920 (1.3s)  qnn_weight_drift=6.201e-03
+[M1] epoch  30  train_acc=0.9993 val_acc=0.9920 (1.3s)  qnn_weight_drift=4.553e-03
+[M1] epoch  31  train_acc=0.9993 val_acc=0.9840 (1.3s)  qnn_weight_drift=4.364e-03
+[M1] epoch  32  train_acc=1.0000 val_acc=0.9867 (1.3s)  qnn_weight_drift=3.583e-03
+[M1] epoch  33  train_acc=0.9993 val_acc=0.9920 (1.3s)  qnn_weight_drift=4.547e-03
+[M1] epoch  34  train_acc=1.0000 val_acc=0.9893 (1.2s)  qnn_weight_drift=4.423e-03
+[M1] epoch  35  train_acc=1.0000 val_acc=0.9920 (1.3s)  qnn_weight_drift=3.953e-03
+[M1] epoch  36  train_acc=1.0000 val_acc=0.9920 (1.2s)  qnn_weight_drift=3.811e-03
+[M1] epoch  37  train_acc=1.0000 val_acc=0.9893 (1.2s)  qnn_weight_drift=3.233e-03
+[M1] epoch  38  train_acc=1.0000 val_acc=0.9867 (1.2s)  qnn_weight_drift=4.244e-03
+[M1] epoch  39  train_acc=1.0000 val_acc=0.9893 (1.2s)  qnn_weight_drift=4.365e-03
+[M1] epoch  40  train_acc=1.0000 val_acc=0.9920 (1.2s)  qnn_weight_drift=3.291e-03
+[M1] epoch  41  train_acc=1.0000 val_acc=0.9893 (1.3s)  qnn_weight_drift=4.397e-03
+[M1] epoch  42  train_acc=1.0000 val_acc=0.9920 (1.2s)  qnn_weight_drift=3.899e-03
+[M1] epoch  43  train_acc=1.0000 val_acc=0.9920 (1.3s)  qnn_weight_drift=3.803e-03
+[M1] epoch  44  train_acc=1.0000 val_acc=0.9920 (1.3s)  qnn_weight_drift=3.712e-03
+[M1] epoch  45  train_acc=1.0000 val_acc=0.9893 (1.3s)  qnn_weight_drift=3.888e-03
+[M1] epoch  46  train_acc=1.0000 val_acc=0.9920 (1.3s)  qnn_weight_drift=4.071e-03
+[M1] epoch  47  train_acc=1.0000 val_acc=0.9920 (1.3s)  qnn_weight_drift=3.714e-03
+[M1] epoch  48  train_acc=1.0000 val_acc=0.9920 (1.3s)  qnn_weight_drift=3.982e-03
+[M1] epoch  49  train_acc=1.0000 val_acc=0.9893 (1.2s)  qnn_weight_drift=4.744e-03
+[M1] early stopping at epoch 49 (best val_acc=0.9920)
+[M1] FINAL test_acc=0.9850
+[M1] GAP@BEST train_acc=0.9993 test_acc=0.9850 gap=+1.43 pp (both measured on the epoch-29 checkpoint, eval mode)
+[PREDICTIONS] saved 600 per-image test predictions, recomputed acc=0.9850 matches reported
+Saved -> results_v12_k3_A/result_M1_mnist_seed46_alpha0.0.json
+=== Job end: Wed Sep 30 14:17:46 AEST 2026 rc=0 ===
+
+======================================================================================
+                  Resource Usage on 2026-09-30 14:17:50:
+   Job Id:             180192234.gadi-pbs
+   Project:            wa66
+   Exit Status:        0
+   Service Units:      0.90
+   NCPUs Requested:    12                  CPU Time Used: 00:01:17        
+   Memory Requested:   32.0GB                Memory Used: 3.35GB          
+   NGPUs Requested:    1                 GPU Utilisation: 5%              
+                                         GPU Memory Used: 526.0MB         
+   Walltime Requested: 01:00:00            Walltime Used: 00:01:30        
+   JobFS Requested:    100.0MB                JobFS Used: 5.03KB          
+======================================================================================

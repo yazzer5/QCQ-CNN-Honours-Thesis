@@ -1,0 +1,34 @@
+#!/bin/bash
+#PBS -P wa66
+#PBS -q gpuvolta
+#PBS -l ncpus=12
+#PBS -l ngpus=1
+#PBS -l mem=90GB
+#PBS -l walltime=24:00:00
+#PBS -l storage=gdata/wa66
+#PBS -l jobfs=10GB
+#PBS -j oe
+#PBS -l wd
+
+# MODEL, DATASET, SEED, ALPHA are injected via `qsub -v` from submit_all.sh
+# e.g. qsub -v MODEL=M2,DATASET=mnist,SEED=42,ALPHA=0.0 run_single.pbs
+
+cd /g/data/wa66/yh2481/qcq_cnn
+
+export PYTHONPATH=""
+source /g/data/wa66/yh2481/miniconda3/etc/profile.d/conda.sh
+conda activate qcqcnn
+
+echo "=== Job start: $(date) ==="
+echo "MODEL=$MODEL DATASET=$DATASET SEED=$SEED ALPHA=$ALPHA"
+nvidia-smi --query-gpu=name,memory.total --format=csv,noheader
+
+python train_gadi.py \
+    --model "$MODEL" \
+    --dataset "$DATASET" \
+    --seed "$SEED" \
+    --noise_alpha "$ALPHA" \
+    --output_dir /g/data/wa66/yh2481/qcq_cnn/results_phase1 \
+    --data_root /g/data/wa66/yh2481/qcq_cnn/data
+
+echo "=== Job end: $(date) ==="

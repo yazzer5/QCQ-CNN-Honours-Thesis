@@ -97,10 +97,19 @@ code/
   v7_fashion/        Fashion-MNIST 0,6; offline data handling; two launch bugs fixed
   v8_fashion/        Fashion-MNIST 2,6; lazy qiskit import, gap@best metric fix
   v9_fashion/        Fashion-MNIST 2,4; identical to v8 except CODE_VERSION tag
+  v1_v4_replication/  v1-v2 Long et al. replication; circuit screen (Circuits 2/4/6)
+  v3_v4_first_grid/   first four-model grid at batch size 1 (did not finish; see logs)
+  v11_brain_tumor/    brain-tumour MRI grid
+  v12_class_count/    class count K = 3, 4, 5 (10 seeds)
+  v13_readout_width/  QNN readout width w = 3, 6, 15
   v13_5_m5/         v13.5: M5 (frozen-front-end control) patch, verify, PBS, analysis
   v14_lowdata/      v14: low data (50-500/class), M1-M5 at w15; split audit, PBS, analysis
   v15_noise/        v15: IBM-calibrated front-end noise (ibm_brisbane), Aer-verified
                      noise model, patch, verify, PBS, gate, analysis
+  v15_5_input_noise/ v15.5: Gaussian pixel noise on the input, M1-M5, two arms
+  v16a_closed_form_head/   closed-form classical replica of the QNN head
+  v16b_redesigned_head/    redesigned quantum head (BFR)
+  v16bx_redesign_controls/ controls for the redesign
   v10_mnist10/       10-class MNIST grid — **reduced-scale/feasibility run,
                      not the locked full protocol, see caveat below**;
                      3-observable readout, re-padded iso-parametric budget,
@@ -116,10 +125,20 @@ results/
   results_v9_fashion_c24/            20 runs — Fashion 2,4 (closes arm-a sequence)
   results_v10_mnist10/               20 runs — 10-class, reduced-scale/feasibility
                                       (raw JSONs + job logs now in repo)
+  results_replication/               v1-v2 replication summary (xlsx + figures)
+  results_v3_grid/                   17 runs — first grid, batch size 1 (partial)
+  results_v11_mri/                   20 runs — brain-tumour MRI
+  results_v12/                      240 runs — class count K=3/4/5
+  results_v13/                      142 runs — readout width
   results_v135/                     131 runs — v13.5 M5 control, K=3/4/5/10 (own README)
   results_v14/                      512 runs — v14 low data, M1-M5 at w15, K=5/10 (own README)
   results_v15/                      630 runs — v15 front-end noise, K=5/10, alpha 0–4,
                                       cross-evaluated to alpha 16 (own README)
+  results_v15_5/                    750 runs — v15.5 pixel noise, K=5/10, sigma 0–0.5,
+                                      deployed and matched arms
+  results_v16a/                     closed-form head replica (+ z dumps, calib)
+  results_v16b/                     redesigned head
+  results_v16bx/                    redesign controls
   results_reps_fashion_mnist_c06/    20 runs — ansatz depth ablation
   results_smoke10_mnist10/            6 runs — 10-class diagnostic
   results_v5_*/                      reduced-scale validation
@@ -192,11 +211,11 @@ Hardware used: NCI Gadi, `gpuvolta` queue (Tesla V100-SXM2-32GB), project
 
 ## Status
 
-> **Repo gap:** v11 (MRI), v12 (class-count sweep) and v13 (readout width) were run
-> after 2026-08-14 and are not yet in this repo. v13.5 (2026-10-14), v14 (2026-10-17)
-> and v15 (2026-10-18) are; their comparators come from v12/v13 (see
-> `results/results_v135/README.md`, `results/results_v14/README.md`,
-> `results/results_v15/README.md`).
+> **Repo coverage:** every experiment from v1 to v16b-ext is in the repo: code, result
+> JSONs, analysis and job logs. v16c was analysis only. v15.6 (2026-11-04) is not here
+> yet. The results write-ups for v13 and v16a–c are kept in the thesis project notes,
+> not yet in `docs/`. Datasets, checkpoints and archive tarballs are not committed (see
+> `DATASETS.md`).
 >
 > **v14 headline:** no sample-efficiency advantage from the quantum front-end down to
 > 50 images per class (M3 − M4 never detected, bounded at about +1 pp). The quantum head's
