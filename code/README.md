@@ -71,6 +71,22 @@ proves M1–M4 bit-identical to the pre-patch file at all 8 (K, width) cells. PB
 smoke → gate (`check_v135.sh`) → grid → gate; 1 h walltime (A2); the `MODEL` clash fixed
 as `GRID_MODEL` (defect D1). See `docs/PREREGISTRATION_v13_5.md`.
 
+## v14_lowdata
+v14: **low data** (N = 50/100/250 train images per class; 500 reused), M1–M5 at readout
+width 15, MNIST K=5 (subsets A, B) and K=10. Built on Gadi from the v13.5 repo by
+`setup_v14.sh` → `patch_v14_lowdata.py`, which wraps `load_dataset` with a **split audit**
+(per-class counts, order-independent image hashes, overlap counts) and changes nothing
+else: it returns the loader's output untouched and restores every RNG state.
+`scripts/verify_v14.py` proves M1–M5 bit-identical to the pre-patch file at w3 and w15,
+checks splits at every N, and shows audit on/off gives identical predictions. Max-epoch
+cap scaled as 200 × 500 / N (verify checks no LR schedule depends on it). PBS: one smoke
+(53 jobs incl. M3/M5 reproductions at N=500) → gate (`check_v14.sh` → `gate_v14.py`,
+which also proves all models at a cell saw identical images) → grid (459, resumable) →
+gate. `collect_v14.py` / `plot_v14.py` / `deep_v14.py` for contrasts and figures.
+Repo copies of `gate_v14.py` / `collect_v14.py` use Python-3.6-compatible `subprocess`
+arguments (added after the smoke, no logic change); `setup_v14.sh` runs verify unbuffered.
+See `docs/PREREGISTRATION_v14.md`.
+
 ## diagnostics/smoke10_mnist
 10-class MNIST across all four models, at two QNN readout widths. Established
 that the back-end is measurement-limited. **Not iso-parametric** — read

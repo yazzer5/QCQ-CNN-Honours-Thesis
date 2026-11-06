@@ -98,6 +98,7 @@ code/
   v8_fashion/        Fashion-MNIST 2,6; lazy qiskit import, gap@best metric fix
   v9_fashion/        Fashion-MNIST 2,4; identical to v8 except CODE_VERSION tag
   v13_5_m5/         v13.5: M5 (frozen-front-end control) patch, verify, PBS, analysis
+  v14_lowdata/      v14: low data (50-500/class), M1-M5 at w15; split audit, PBS, analysis
   v15_noise/        v15: IBM-calibrated front-end noise (ibm_brisbane), Aer-verified
                      noise model, patch, verify, PBS, gate, analysis
   v10_mnist10/       10-class MNIST grid — **reduced-scale/feasibility run,
@@ -116,6 +117,7 @@ results/
   results_v10_mnist10/               20 runs — 10-class, reduced-scale/feasibility
                                       (raw JSONs + job logs now in repo)
   results_v135/                     131 runs — v13.5 M5 control, K=3/4/5/10 (own README)
+  results_v14/                      512 runs — v14 low data, M1-M5 at w15, K=5/10 (own README)
   results_v15/                      630 runs — v15 front-end noise, K=5/10, alpha 0–4,
                                       cross-evaluated to alpha 16 (own README)
   results_reps_fashion_mnist_c06/    20 runs — ansatz depth ablation
@@ -190,10 +192,16 @@ Hardware used: NCI Gadi, `gpuvolta` queue (Tesla V100-SXM2-32GB), project
 
 ## Status
 
-> **Repo gap:** v11 (MRI), v12 (class-count sweep), v13 (readout width) and v14 (low
-> data) were run after 2026-08-14 and are not yet in this repo. v13.5 (2026-10-14) and
-> v15 (2026-10-18) are; their comparators come from v12/v13/v14 (see
-> `results/results_v135/README.md`, `results/results_v15/README.md`).
+> **Repo gap:** v11 (MRI), v12 (class-count sweep) and v13 (readout width) were run
+> after 2026-08-14 and are not yet in this repo. v13.5 (2026-10-14), v14 (2026-10-17)
+> and v15 (2026-10-18) are; their comparators come from v12/v13 (see
+> `results/results_v135/README.md`, `results/results_v14/README.md`,
+> `results/results_v15/README.md`).
+>
+> **v14 headline:** no sample-efficiency advantage from the quantum front-end down to
+> 50 images per class (M3 − M4 never detected, bounded at about +1 pp). The quantum head's
+> cost grows from 2.3 pp at 500/class to 13.5 pp (K=5) and 17.1 pp (K=10) at 50/class,
+> almost entirely as a generalisation gap. Write-up: `docs/V14_RESULTS.md`.
 
 Complete: MNIST 3-vs-5 grid · Fashion-MNIST 0,6 / 2,6 / 2,4 grids (all of arm
 (a), 80 runs total, code for all three now in `code/`) · 10-class MNIST
