@@ -1,0 +1,359 @@
+-rw-r--r-- 1 yh2481 wa66 10963 Oct  4 13:53 qnn_torch.py
+-rw-r--r-- 1 yh2481 wa66 11494 Aug 13 15:12 quanv_torch.py
+-rw-r--r-- 1 yh2481 wa66 93990 Oct 15 16:50 train_gadi.py
+=== Job start: Fri Oct 16 13:07:41 AEDT 2026 ===
+[V14] W=15
+[V14] K=10 TAG=all N=50 CLASSES=0,1,2,3,4,5,6,7,8,9 MODEL=M1 SEED=43 OUT=results_v14_k10_all_n50 CONT=0
+[V14] split train=500 val=1250 test=2000 max_epochs=2000 patience=20 budget=1.75h
+Data root: /g/data/wa66/yh2481/qcq_cnn_v14/data
+
+[1/4] Verifying staged archives
+      ok       MNIST/raw/train-images-idx3-ubyte.gz  (9,912,422 bytes)
+      ok       MNIST/raw/train-labels-idx1-ubyte.gz  (28,881 bytes)
+      ok       MNIST/raw/t10k-images-idx3-ubyte.gz  (1,648,877 bytes)
+      ok       MNIST/raw/t10k-labels-idx1-ubyte.gz  (4,542 bytes)
+      ok       FashionMNIST/raw/train-images-idx3-ubyte.gz  (26,421,880 bytes)
+      ok       FashionMNIST/raw/train-labels-idx1-ubyte.gz  (29,515 bytes)
+      ok       FashionMNIST/raw/t10k-images-idx3-ubyte.gz  (4,422,102 bytes)
+      ok       FashionMNIST/raw/t10k-labels-idx1-ubyte.gz  (5,148 bytes)
+
+[2/4] Extracting archives (so torchvision never enters download())
+      present  train-images-idx3-ubyte
+      present  train-labels-idx1-ubyte
+      present  t10k-images-idx3-ubyte
+      present  t10k-labels-idx1-ubyte
+      present  train-images-idx3-ubyte
+      present  train-labels-idx1-ubyte
+      present  t10k-images-idx3-ubyte
+      present  t10k-labels-idx1-ubyte
+
+[3/4] Opening datasets with download=False (offline proof)
+      MNIST         train=60,000  test=10,000
+      FashionMNIST  train=60,000  test=10,000
+
+[4/4] Checking MNIST classes 0,1,2,3,4,5,6,7,8,9
+      protocol: 500+1250 train+val and 2000 test across 10 classes -> need 175 train and 200 test PER CLASS
+      class 0 (digit 0     ) train=5,923  test=980
+      class 1 (digit 1     ) train=6,742  test=1,135
+      class 2 (digit 2     ) train=5,958  test=1,032
+      class 3 (digit 3     ) train=6,131  test=1,010
+      class 4 (digit 4     ) train=5,842  test=982
+      class 5 (digit 5     ) train=5,421  test=892
+      class 6 (digit 6     ) train=5,918  test=958
+      class 7 (digit 7     ) train=6,265  test=1,028
+      class 8 (digit 8     ) train=5,851  test=974
+      class 9 (digit 9     ) train=5,949  test=1,009
+
+  PREFLIGHT PASSED -- MNIST 10-class (0, 1, 2, 3, 4, 5, 6, 7, 8, 9) is ready. No network required.
+
+[BACKEND] torch-native quantum front-end (exact batched tensor algebra, autograd gradients == parameter-shift).
+[MULTICLASS] n_classes=10 n_obs=15 head_variant=linear
+[LOSS] ce (softmax cross-entropy, Long et al. eq 21 -- DEVIATION from v6-v10, which used bce)
+[DETERMINISM] torch deterministic algorithms ENABLED. Two runs with the same seed should now agree exactly; if they do not, something else is injecting nondeterminism and must be found before the grid is trusted.
+[PROTOCOL] REDUCED-SCALE / FEASIBILITY RUN -- not the locked full protocol. N_TRAIN=500 N_VAL=1250 N_TEST=2000 MAX_EPOCHS=2000 PATIENCE=20 MIN_EPOCHS_QUANTUM_FRONTEND=30. Label any results from this run accordingly -- do not mix with full-scale (5000/1250/1000, 100 max epochs) results.
+[PROTOCOL RESOLVED] n_train=500 n_val=1250 n_test=2000 max_epochs=2000 patience=20 min_epochs_quantum=30 batch_size=32 lr=0.001 weight_decay=0.0001 dropout=0.0 n_classes=10 n_obs=15 head_variant=linear loss=ce qnn_backend=torch deterministic=True save_predictions=True classes=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+Device: cuda
+[CODE VERSION] v10
+Run: model=M1 dataset=mnist seed=43 noise_alpha=0.0 batch_size=32 lr=0.001 weight_decay=0.0001 dropout=0.0
+[CLASS PAIR] trainer received classes=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+[VERIFIED] M1 params: front=0 backbone=1464 back_end=296 total=1760 (expected 1760) OK
+[DEVICE] whole model on cuda (front-end included -- v5 torch-native quantum simulation)
+[DATA] mnist: 10 classes, pool=1750 test=2000 (175 train+val and 200 test per class)
+[V14] SPLIT train n=500 labels=0,1,2,3,4,5,6,7,8,9 per_class=44,48,50,49,45,59,45,59,53,48 min=44 max=59 hash=2462c7ce90646735
+[V14] SPLIT val   n=1250 labels=0,1,2,3,4,5,6,7,8,9 per_class=131,127,125,126,130,116,130,116,122,127 min=116 max=131 hash=7b521cd2d33a4807
+[V14] SPLIT test  n=2000 labels=0,1,2,3,4,5,6,7,8,9 per_class=200,200,200,200,200,200,200,200,200,200 min=200 max=200 hash=677f750a6a578d64
+[V14] SPLIT overlap train&val=0 train&test=0 val&test=0
+Split sizes: train=500 val=1250 test=2000
+[V135] warmup: model=M1 min_epochs=30
+[GRADCHECK] M1:
+  backbone.conv1.weight                    |grad|=3.091e-01
+  backbone.conv1.bias                      |grad|=3.464e-02
+  backbone.conv2.weight                    |grad|=3.441e-01
+  backbone.conv2.bias                      |grad|=6.187e-02
+  back_end.fc2.weight                      |grad|=2.132e-01
+  back_end.fc2.bias                        |grad|=1.014e-01
+  back_end.qnn.weight                      |grad|=2.244e-02
+  back_end.fc3.weight                      |grad|=2.726e-01
+  back_end.fc3.bias                        |grad|=1.602e-01
+[GRADCHECK] M1: all trainable tensors receive gradient. OK
+[OUTPUT DIVERSITY] M1: logits for 8 distinct samples (label in brackets):
+  sample 0  label=3  logits=[-0.14452003 -0.38085154  0.5894411  -0.20373426 -0.20971072 -0.20435011
+  0.42245567  0.08230944  0.0342094   0.17116073]
+  sample 1  label=2  logits=[-0.20047776 -0.33355245  0.5644825  -0.23958257 -0.15758008 -0.1757006
+  0.3831321   0.20356788  0.05665335  0.1866302 ]
+  sample 2  label=1  logits=[-0.04853119 -0.3864963   0.5789981  -0.17651612 -0.29199722 -0.27710626
+  0.40971935 -0.04407541  0.01109356  0.13952075]
+  sample 3  label=9  logits=[-0.04716377 -0.3554713   0.55650574 -0.21474546 -0.29401222 -0.2785486
+  0.36716717 -0.00163984  0.03993761  0.12119976]
+  sample 4  label=7  logits=[ 0.00953916 -0.37159592  0.5655922  -0.17177695 -0.33385774 -0.32193303
+  0.38395384 -0.09270684  0.01153257  0.12302729]
+  sample 5  label=9  logits=[ 0.1597521  -0.35059217  0.54655737 -0.09208977 -0.41222355 -0.44128364
+  0.3648951  -0.25165555 -0.01839083  0.12421301]
+  sample 6  label=3  logits=[-0.16344048 -0.36487272  0.5822444  -0.21799308 -0.19405144 -0.19513518
+  0.40883565  0.12410508  0.04358276  0.17525083]
+  sample 7  label=5  logits=[-0.12233539 -0.32031694  0.5272518  -0.26204145 -0.22947395 -0.2266349
+  0.33585417  0.12803178  0.07006709  0.12526077]
+  per-class std across samples: [0.11596902 0.02282002 0.02041898 0.05196951 0.08356127 0.08672874
+ 0.02859129 0.14694202 0.02840393 0.02733045]  (nonzero spread)
+[TRAIN/EVAL SHIFT] M1: dropout_rate=0.0
+  mean logit margin (class0-class1)  train-mode=+0.2410  eval-mode=+0.2410
+  predictions flipping between modes: 0/32
+[M1] epoch   1  train_acc=0.1020 val_acc=0.1240 (0.7s)  qnn_weight_drift=6.771e-03
+[M1] epoch   2  train_acc=0.1540 val_acc=0.1360 (0.7s)  qnn_weight_drift=8.549e-03
+[M1] epoch   3  train_acc=0.1820 val_acc=0.1704 (0.7s)  qnn_weight_drift=6.695e-03
+[OUTPUT DIVERSITY] M1 (after epoch 3): logits for 8 distinct samples (label in brackets):
+  sample 0  label=6  logits=[ 0.19936773 -0.23449452  0.25366694 -0.17606042 -0.3222219  -0.19753432
+  0.1148281  -0.17249057  0.21830241 -0.12080668]
+  sample 1  label=1  logits=[-0.2753417   0.06386687  0.00303847 -0.24872643  0.12348284  0.06271888
+ -0.04869834  0.53156674  0.03087223  0.12714478]
+  sample 2  label=5  logits=[-0.08174339 -0.09071462  0.06059961 -0.27666855 -0.11211281 -0.02958743
+  0.03886282  0.21629404  0.17998187 -0.0784045 ]
+  sample 3  label=5  logits=[-0.06155479 -0.11500145  0.10626924 -0.2593249  -0.14667705 -0.04602626
+  0.06175285  0.17423655  0.18127005 -0.07502265]
+  sample 4  label=0  logits=[ 0.44218025 -0.16767344  0.44179174  0.17082424 -0.25009707 -0.39021432
+  0.07980283 -0.46549827  0.18953113  0.12139882]
+  sample 5  label=9  logits=[-0.2594413   0.00952583  0.0798196  -0.23395558  0.05421242  0.0479359
+  0.01297793  0.47481573  0.06298891  0.1132987 ]
+  sample 6  label=4  logits=[-0.2831276   0.04558293  0.05796048 -0.23079538  0.10880083  0.06155066
+ -0.01529841  0.531661    0.02916618  0.15566264]
+  sample 7  label=7  logits=[-0.29904288  0.01952716  0.15258804 -0.19163801  0.11256775  0.05909915
+  0.04457198  0.5481668   0.00530105  0.2378195 ]
+  per-class std across samples: [0.2700802  0.10931314 0.14169893 0.14593323 0.17720939 0.16233094
+ 0.05238963 0.3764724  0.08779913 0.13199995]  (nonzero spread)
+[TRAIN/EVAL SHIFT] M1 (after epoch 3): dropout_rate=0.0
+  mean logit margin (class0-class1)  train-mode=+0.0205  eval-mode=+0.0205
+  predictions flipping between modes: 0/32
+[M1] epoch   4  train_acc=0.2060 val_acc=0.1816 (0.7s)  qnn_weight_drift=1.121e-02
+[M1] epoch   5  train_acc=0.1940 val_acc=0.1648 (0.7s)  qnn_weight_drift=1.243e-02
+[M1] epoch   6  train_acc=0.2440 val_acc=0.1752 (0.7s)  qnn_weight_drift=1.116e-02
+[M1] epoch   7  train_acc=0.2600 val_acc=0.2176 (0.7s)  qnn_weight_drift=1.149e-02
+[M1] epoch   8  train_acc=0.3300 val_acc=0.2296 (0.7s)  qnn_weight_drift=1.047e-02
+[M1] epoch   9  train_acc=0.3100 val_acc=0.2544 (0.7s)  qnn_weight_drift=9.933e-03
+[M1] epoch  10  train_acc=0.3580 val_acc=0.2608 (0.7s)  qnn_weight_drift=8.960e-03
+[M1] epoch  11  train_acc=0.3860 val_acc=0.2824 (0.7s)  qnn_weight_drift=1.135e-02
+[M1] epoch  12  train_acc=0.3940 val_acc=0.2880 (0.7s)  qnn_weight_drift=8.864e-03
+[M1] epoch  13  train_acc=0.4120 val_acc=0.2536 (0.7s)  qnn_weight_drift=9.609e-03
+[M1] epoch  14  train_acc=0.4440 val_acc=0.2960 (0.7s)  qnn_weight_drift=8.116e-03
+[M1] epoch  15  train_acc=0.4780 val_acc=0.3184 (0.7s)  qnn_weight_drift=7.368e-03
+[OUTPUT DIVERSITY] M1 (after epoch 15): logits for 8 distinct samples (label in brackets):
+  sample 0  label=2  logits=[ 0.23169369 -0.46476224  0.40725666  0.38110062 -0.9702256   0.18608889
+  0.6055441  -0.74828076  0.7803227  -0.8600029 ]
+  sample 1  label=1  logits=[-0.91252524  0.81141317 -0.819252   -0.4307907   0.33488095  0.7141056
+ -0.58081156  0.8577282  -0.43219033  0.18927312]
+  sample 2  label=5  logits=[-9.69174802e-01  3.11448365e-01 -2.92571634e-01 -3.89946178e-02
+ -1.86483160e-01  7.31532693e-01 -1.62959099e-04  6.55967772e-01
+ -1.03710435e-01  1.03216201e-01]
+  sample 3  label=9  logits=[-0.14605315  0.38059178 -0.28210315 -0.6136173   1.0108668  -0.2252503
+ -0.8163017   0.83896595 -0.9557881   1.1300873 ]
+  sample 4  label=5  logits=[-0.8233209   0.46033624 -0.50534546 -0.09594483 -0.32745844  0.80807674
+ -0.03835447  0.38671815  0.09785479 -0.3093469 ]
+  sample 5  label=0  logits=[ 0.92396784 -0.7027877   0.9925147   0.5449803  -0.57753474 -0.7193972
+  0.35690266 -0.8881906   0.44919404 -0.2674329 ]
+  sample 6  label=7  logits=[-0.78445953  0.661787   -0.56682456 -0.5160286   0.72485304  0.33141282
+ -0.7497045   1.1913614  -0.8120953   0.89052415]
+  sample 7  label=7  logits=[-0.8110016   0.7722949  -0.7067884  -0.55459344  0.73035526  0.451902
+ -0.8162864   1.1241428  -0.77300465  0.7014451 ]
+  per-class std across samples: [0.68639416 0.5650127  0.6176592  0.44237158 0.711277   0.5299724
+ 0.56160814 0.8098111  0.633111   0.6765762 ]  (nonzero spread)
+[TRAIN/EVAL SHIFT] M1 (after epoch 15): dropout_rate=0.0
+  mean logit margin (class0-class1)  train-mode=+0.1559  eval-mode=+0.1559
+  predictions flipping between modes: 0/32
+[M1] epoch  16  train_acc=0.5020 val_acc=0.3336 (0.7s)  qnn_weight_drift=8.990e-03
+[M1] epoch  17  train_acc=0.5420 val_acc=0.3208 (0.7s)  qnn_weight_drift=9.197e-03
+[M1] epoch  18  train_acc=0.5640 val_acc=0.3440 (0.7s)  qnn_weight_drift=8.429e-03
+[M1] epoch  19  train_acc=0.5220 val_acc=0.3440 (0.7s)  qnn_weight_drift=7.855e-03
+[M1] epoch  20  train_acc=0.5980 val_acc=0.3600 (0.7s)  qnn_weight_drift=8.621e-03
+[M1] epoch  21  train_acc=0.5820 val_acc=0.3472 (0.7s)  qnn_weight_drift=6.708e-03
+[M1] epoch  22  train_acc=0.6180 val_acc=0.3736 (0.7s)  qnn_weight_drift=7.811e-03
+[M1] epoch  23  train_acc=0.6100 val_acc=0.3400 (0.7s)  qnn_weight_drift=7.358e-03
+[M1] epoch  24  train_acc=0.6340 val_acc=0.3984 (0.7s)  qnn_weight_drift=6.570e-03
+[M1] epoch  25  train_acc=0.6800 val_acc=0.4064 (0.7s)  qnn_weight_drift=7.197e-03
+[OUTPUT DIVERSITY] M1 (after epoch 25): logits for 8 distinct samples (label in brackets):
+  sample 0  label=1  logits=[-0.9670945  1.3038579 -1.2294475 -0.8050849  0.7885994  0.771062
+ -1.0565147  1.054853  -0.8807211  0.2848103]
+  sample 1  label=5  logits=[-0.9224624   0.69016516 -0.8458361   0.11985271 -0.85663736  1.163533
+  0.33039153 -0.04176074  0.64606375 -1.0325494 ]
+  sample 2  label=8  logits=[ 0.34685066 -0.58311117  0.33425325  0.53842485 -1.1815414   0.25582358
+  0.98665273 -1.1508508   1.3493236  -1.3378308 ]
+  sample 3  label=3  logits=[ 0.7966594  -1.0072933   1.0420458   0.82426775 -1.0481191  -0.3603493
+  0.86584175 -1.3456392   1.0325513  -1.0027733 ]
+  sample 4  label=9  logits=[-0.5389556   0.3227235  -0.43430388 -0.7191995   0.89526045 -0.19065648
+ -0.91164064  1.4099634  -1.2313149   1.6501045 ]
+  sample 5  label=6  logits=[ 0.78501946 -1.0074643   1.1057612   0.88415074 -1.0524675  -0.41799837
+  0.8594715  -1.3373783   0.9570606  -0.93268174]
+  sample 6  label=6  logits=[-0.03342476 -0.5068971   0.35886723  0.8019288  -1.3360703   0.43427584
+  0.96947104 -0.97994214  1.1462381  -1.2873316 ]
+  sample 7  label=3  logits=[ 0.30562025 -0.79530406  0.79599124  0.96156895 -1.2757245   0.0158005
+  0.9808087  -1.1714529   1.0235202  -1.1064043 ]
+  per-class std across samples: [0.7107284  0.86406475 0.8815101  0.7220679  0.92297    0.5598884
+ 0.8682289  1.1194808  0.98781943 1.0405335 ]  (nonzero spread)
+[TRAIN/EVAL SHIFT] M1 (after epoch 25): dropout_rate=0.0
+  mean logit margin (class0-class1)  train-mode=-0.1194  eval-mode=-0.1194
+  predictions flipping between modes: 0/32
+[M1] epoch  26  train_acc=0.6920 val_acc=0.3912 (0.7s)  qnn_weight_drift=5.627e-03
+  [INVERSION] M1 epoch 27: train_acc=0.7100 but val_acc=0.4304 (BELOW CHANCE). Inverting val predictions would give 0.5696. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  27  train_acc=0.7100 val_acc=0.4304 (0.7s)  qnn_weight_drift=7.047e-03
+  [INVERSION] M1 epoch 28: train_acc=0.7280 but val_acc=0.4264 (BELOW CHANCE). Inverting val predictions would give 0.5736. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  28  train_acc=0.7280 val_acc=0.4264 (0.7s)  qnn_weight_drift=5.411e-03
+  [INVERSION] M1 epoch 29: train_acc=0.7580 but val_acc=0.4256 (BELOW CHANCE). Inverting val predictions would give 0.5744. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  29  train_acc=0.7580 val_acc=0.4256 (0.7s)  qnn_weight_drift=5.281e-03
+  [INVERSION] M1 epoch 30: train_acc=0.7160 but val_acc=0.4400 (BELOW CHANCE). Inverting val predictions would give 0.5600. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  30  train_acc=0.7160 val_acc=0.4400 (0.7s)  qnn_weight_drift=5.171e-03
+  [INVERSION] M1 epoch 31: train_acc=0.7580 but val_acc=0.4216 (BELOW CHANCE). Inverting val predictions would give 0.5784. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  31  train_acc=0.7580 val_acc=0.4216 (0.7s)  qnn_weight_drift=3.458e-03
+  [INVERSION] M1 epoch 32: train_acc=0.7620 but val_acc=0.4352 (BELOW CHANCE). Inverting val predictions would give 0.5648. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  32  train_acc=0.7620 val_acc=0.4352 (0.7s)  qnn_weight_drift=3.703e-03
+  [INVERSION] M1 epoch 33: train_acc=0.7840 but val_acc=0.4312 (BELOW CHANCE). Inverting val predictions would give 0.5688. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  33  train_acc=0.7840 val_acc=0.4312 (0.7s)  qnn_weight_drift=7.402e-03
+  [INVERSION] M1 epoch 34: train_acc=0.7840 but val_acc=0.4224 (BELOW CHANCE). Inverting val predictions would give 0.5776. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  34  train_acc=0.7840 val_acc=0.4224 (0.7s)  qnn_weight_drift=5.210e-03
+  [INVERSION] M1 epoch 35: train_acc=0.7940 but val_acc=0.4424 (BELOW CHANCE). Inverting val predictions would give 0.5576. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  35  train_acc=0.7940 val_acc=0.4424 (0.7s)  qnn_weight_drift=3.846e-03
+  [INVERSION] M1 epoch 36: train_acc=0.8020 but val_acc=0.4408 (BELOW CHANCE). Inverting val predictions would give 0.5592. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  36  train_acc=0.8020 val_acc=0.4408 (0.7s)  qnn_weight_drift=5.766e-03
+  [INVERSION] M1 epoch 37: train_acc=0.8080 but val_acc=0.4384 (BELOW CHANCE). Inverting val predictions would give 0.5616. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  37  train_acc=0.8080 val_acc=0.4384 (0.7s)  qnn_weight_drift=5.157e-03
+  [INVERSION] M1 epoch 38: train_acc=0.8200 but val_acc=0.4416 (BELOW CHANCE). Inverting val predictions would give 0.5584. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  38  train_acc=0.8200 val_acc=0.4416 (0.7s)  qnn_weight_drift=4.184e-03
+  [INVERSION] M1 epoch 39: train_acc=0.8100 but val_acc=0.4280 (BELOW CHANCE). Inverting val predictions would give 0.5720. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  39  train_acc=0.8100 val_acc=0.4280 (0.7s)  qnn_weight_drift=4.798e-03
+  [INVERSION] M1 epoch 40: train_acc=0.8200 but val_acc=0.4360 (BELOW CHANCE). Inverting val predictions would give 0.5640. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  40  train_acc=0.8200 val_acc=0.4360 (0.7s)  qnn_weight_drift=3.859e-03
+  [INVERSION] M1 epoch 41: train_acc=0.8200 but val_acc=0.4432 (BELOW CHANCE). Inverting val predictions would give 0.5568. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  41  train_acc=0.8200 val_acc=0.4432 (0.7s)  qnn_weight_drift=4.525e-03
+  [INVERSION] M1 epoch 42: train_acc=0.8240 but val_acc=0.4376 (BELOW CHANCE). Inverting val predictions would give 0.5624. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  42  train_acc=0.8240 val_acc=0.4376 (0.7s)  qnn_weight_drift=3.795e-03
+  [INVERSION] M1 epoch 43: train_acc=0.8460 but val_acc=0.4424 (BELOW CHANCE). Inverting val predictions would give 0.5576. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  43  train_acc=0.8460 val_acc=0.4424 (0.7s)  qnn_weight_drift=6.262e-03
+  [INVERSION] M1 epoch 44: train_acc=0.8300 but val_acc=0.4400 (BELOW CHANCE). Inverting val predictions would give 0.5600. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  44  train_acc=0.8300 val_acc=0.4400 (0.7s)  qnn_weight_drift=5.830e-03
+  [INVERSION] M1 epoch 45: train_acc=0.8400 but val_acc=0.4392 (BELOW CHANCE). Inverting val predictions would give 0.5608. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  45  train_acc=0.8400 val_acc=0.4392 (0.7s)  qnn_weight_drift=5.978e-03
+  [INVERSION] M1 epoch 46: train_acc=0.8520 but val_acc=0.4528 (BELOW CHANCE). Inverting val predictions would give 0.5472. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  46  train_acc=0.8520 val_acc=0.4528 (0.7s)  qnn_weight_drift=3.633e-03
+  [INVERSION] M1 epoch 47: train_acc=0.8580 but val_acc=0.4440 (BELOW CHANCE). Inverting val predictions would give 0.5560. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  47  train_acc=0.8580 val_acc=0.4440 (0.7s)  qnn_weight_drift=4.624e-03
+  [INVERSION] M1 epoch 48: train_acc=0.8600 but val_acc=0.4448 (BELOW CHANCE). Inverting val predictions would give 0.5552. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  48  train_acc=0.8600 val_acc=0.4448 (0.7s)  qnn_weight_drift=4.055e-03
+  [INVERSION] M1 epoch 49: train_acc=0.8560 but val_acc=0.4432 (BELOW CHANCE). Inverting val predictions would give 0.5568. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  49  train_acc=0.8560 val_acc=0.4432 (0.7s)  qnn_weight_drift=7.114e-03
+  [INVERSION] M1 epoch 50: train_acc=0.8620 but val_acc=0.4536 (BELOW CHANCE). Inverting val predictions would give 0.5464. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  50  train_acc=0.8620 val_acc=0.4536 (0.7s)  qnn_weight_drift=3.436e-03
+  [INVERSION] M1 epoch 51: train_acc=0.8640 but val_acc=0.4520 (BELOW CHANCE). Inverting val predictions would give 0.5480. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  51  train_acc=0.8640 val_acc=0.4520 (0.7s)  qnn_weight_drift=3.552e-03
+  [INVERSION] M1 epoch 52: train_acc=0.8680 but val_acc=0.4512 (BELOW CHANCE). Inverting val predictions would give 0.5488. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  52  train_acc=0.8680 val_acc=0.4512 (0.7s)  qnn_weight_drift=5.555e-03
+  [INVERSION] M1 epoch 53: train_acc=0.8760 but val_acc=0.4552 (BELOW CHANCE). Inverting val predictions would give 0.5448. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  53  train_acc=0.8760 val_acc=0.4552 (0.7s)  qnn_weight_drift=4.930e-03
+  [INVERSION] M1 epoch 54: train_acc=0.8740 but val_acc=0.4512 (BELOW CHANCE). Inverting val predictions would give 0.5488. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  54  train_acc=0.8740 val_acc=0.4512 (0.7s)  qnn_weight_drift=4.519e-03
+  [INVERSION] M1 epoch 55: train_acc=0.8780 but val_acc=0.4512 (BELOW CHANCE). Inverting val predictions would give 0.5488. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  55  train_acc=0.8780 val_acc=0.4512 (0.7s)  qnn_weight_drift=4.067e-03
+  [INVERSION] M1 epoch 56: train_acc=0.8660 but val_acc=0.4440 (BELOW CHANCE). Inverting val predictions would give 0.5560. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  56  train_acc=0.8660 val_acc=0.4440 (0.7s)  qnn_weight_drift=3.437e-03
+  [INVERSION] M1 epoch 57: train_acc=0.8740 but val_acc=0.4512 (BELOW CHANCE). Inverting val predictions would give 0.5488. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  57  train_acc=0.8740 val_acc=0.4512 (0.7s)  qnn_weight_drift=6.245e-03
+  [INVERSION] M1 epoch 58: train_acc=0.8820 but val_acc=0.4504 (BELOW CHANCE). Inverting val predictions would give 0.5496. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  58  train_acc=0.8820 val_acc=0.4504 (0.7s)  qnn_weight_drift=3.486e-03
+  [INVERSION] M1 epoch 59: train_acc=0.8780 but val_acc=0.4544 (BELOW CHANCE). Inverting val predictions would give 0.5456. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  59  train_acc=0.8780 val_acc=0.4544 (0.7s)  qnn_weight_drift=3.503e-03
+  [INVERSION] M1 epoch 60: train_acc=0.8820 but val_acc=0.4576 (BELOW CHANCE). Inverting val predictions would give 0.5424. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  60  train_acc=0.8820 val_acc=0.4576 (0.7s)  qnn_weight_drift=5.170e-03
+  [INVERSION] M1 epoch 61: train_acc=0.8980 but val_acc=0.4648 (BELOW CHANCE). Inverting val predictions would give 0.5352. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  61  train_acc=0.8980 val_acc=0.4648 (0.7s)  qnn_weight_drift=3.110e-03
+  [INVERSION] M1 epoch 62: train_acc=0.9000 but val_acc=0.4696 (BELOW CHANCE). Inverting val predictions would give 0.5304. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  62  train_acc=0.9000 val_acc=0.4696 (0.7s)  qnn_weight_drift=6.739e-03
+  [INVERSION] M1 epoch 63: train_acc=0.8920 but val_acc=0.4616 (BELOW CHANCE). Inverting val predictions would give 0.5384. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  63  train_acc=0.8920 val_acc=0.4616 (0.7s)  qnn_weight_drift=4.420e-03
+  [INVERSION] M1 epoch 64: train_acc=0.9180 but val_acc=0.4728 (BELOW CHANCE). Inverting val predictions would give 0.5272. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  64  train_acc=0.9180 val_acc=0.4728 (0.7s)  qnn_weight_drift=6.286e-03
+  [INVERSION] M1 epoch 65: train_acc=0.9280 but val_acc=0.4800 (BELOW CHANCE). Inverting val predictions would give 0.5200. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  65  train_acc=0.9280 val_acc=0.4800 (0.7s)  qnn_weight_drift=3.811e-03
+  [INVERSION] M1 epoch 66: train_acc=0.9240 but val_acc=0.4776 (BELOW CHANCE). Inverting val predictions would give 0.5224. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  66  train_acc=0.9240 val_acc=0.4776 (0.7s)  qnn_weight_drift=4.050e-03
+  [INVERSION] M1 epoch 67: train_acc=0.9400 but val_acc=0.4768 (BELOW CHANCE). Inverting val predictions would give 0.5232. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  67  train_acc=0.9400 val_acc=0.4768 (0.7s)  qnn_weight_drift=4.317e-03
+  [INVERSION] M1 epoch 68: train_acc=0.9480 but val_acc=0.4760 (BELOW CHANCE). Inverting val predictions would give 0.5240. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  68  train_acc=0.9480 val_acc=0.4760 (0.7s)  qnn_weight_drift=3.349e-03
+  [INVERSION] M1 epoch 69: train_acc=0.9320 but val_acc=0.4840 (BELOW CHANCE). Inverting val predictions would give 0.5160. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  69  train_acc=0.9320 val_acc=0.4840 (0.7s)  qnn_weight_drift=4.262e-03
+  [INVERSION] M1 epoch 70: train_acc=0.9640 but val_acc=0.4840 (BELOW CHANCE). Inverting val predictions would give 0.5160. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  70  train_acc=0.9640 val_acc=0.4840 (0.7s)  qnn_weight_drift=4.650e-03
+  [INVERSION] M1 epoch 71: train_acc=0.9700 but val_acc=0.4880 (BELOW CHANCE). Inverting val predictions would give 0.5120. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  71  train_acc=0.9700 val_acc=0.4880 (0.7s)  qnn_weight_drift=3.072e-03
+  [INVERSION] M1 epoch 72: train_acc=0.9640 but val_acc=0.4832 (BELOW CHANCE). Inverting val predictions would give 0.5168. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  72  train_acc=0.9640 val_acc=0.4832 (0.7s)  qnn_weight_drift=3.874e-03
+  [INVERSION] M1 epoch 73: train_acc=0.9720 but val_acc=0.4824 (BELOW CHANCE). Inverting val predictions would give 0.5176. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  73  train_acc=0.9720 val_acc=0.4824 (0.7s)  qnn_weight_drift=5.363e-03
+  [INVERSION] M1 epoch 74: train_acc=0.9740 but val_acc=0.4824 (BELOW CHANCE). Inverting val predictions would give 0.5176. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  74  train_acc=0.9740 val_acc=0.4824 (0.7s)  qnn_weight_drift=2.904e-03
+  [INVERSION] M1 epoch 75: train_acc=0.9740 but val_acc=0.4800 (BELOW CHANCE). Inverting val predictions would give 0.5200. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  75  train_acc=0.9740 val_acc=0.4800 (0.7s)  qnn_weight_drift=3.291e-03
+  [INVERSION] M1 epoch 76: train_acc=0.9780 but val_acc=0.4888 (BELOW CHANCE). Inverting val predictions would give 0.5112. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  76  train_acc=0.9780 val_acc=0.4888 (0.7s)  qnn_weight_drift=2.831e-03
+  [INVERSION] M1 epoch 77: train_acc=0.9780 but val_acc=0.4776 (BELOW CHANCE). Inverting val predictions would give 0.5224. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  77  train_acc=0.9780 val_acc=0.4776 (0.7s)  qnn_weight_drift=3.421e-03
+  [INVERSION] M1 epoch 78: train_acc=0.9840 but val_acc=0.4880 (BELOW CHANCE). Inverting val predictions would give 0.5120. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  78  train_acc=0.9840 val_acc=0.4880 (0.7s)  qnn_weight_drift=3.478e-03
+  [INVERSION] M1 epoch 79: train_acc=0.9880 but val_acc=0.4904 (BELOW CHANCE). Inverting val predictions would give 0.5096. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  79  train_acc=0.9880 val_acc=0.4904 (0.7s)  qnn_weight_drift=3.119e-03
+  [INVERSION] M1 epoch 80: train_acc=0.9840 but val_acc=0.4792 (BELOW CHANCE). Inverting val predictions would give 0.5208. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  80  train_acc=0.9840 val_acc=0.4792 (0.7s)  qnn_weight_drift=3.960e-03
+  [INVERSION] M1 epoch 81: train_acc=0.9880 but val_acc=0.4904 (BELOW CHANCE). Inverting val predictions would give 0.5096. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  81  train_acc=0.9880 val_acc=0.4904 (0.7s)  qnn_weight_drift=4.280e-03
+  [INVERSION] M1 epoch 82: train_acc=0.9900 but val_acc=0.4784 (BELOW CHANCE). Inverting val predictions would give 0.5216. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  82  train_acc=0.9900 val_acc=0.4784 (0.6s)  qnn_weight_drift=3.069e-03
+  [INVERSION] M1 epoch 83: train_acc=0.9880 but val_acc=0.4760 (BELOW CHANCE). Inverting val predictions would give 0.5240. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  83  train_acc=0.9880 val_acc=0.4760 (0.6s)  qnn_weight_drift=5.146e-03
+  [INVERSION] M1 epoch 84: train_acc=0.9900 but val_acc=0.4856 (BELOW CHANCE). Inverting val predictions would give 0.5144. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  84  train_acc=0.9900 val_acc=0.4856 (0.6s)  qnn_weight_drift=4.293e-03
+  [INVERSION] M1 epoch 85: train_acc=0.9920 but val_acc=0.4728 (BELOW CHANCE). Inverting val predictions would give 0.5272. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  85  train_acc=0.9920 val_acc=0.4728 (0.6s)  qnn_weight_drift=4.039e-03
+  [INVERSION] M1 epoch 86: train_acc=0.9920 but val_acc=0.4816 (BELOW CHANCE). Inverting val predictions would give 0.5184. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  86  train_acc=0.9920 val_acc=0.4816 (0.6s)  qnn_weight_drift=5.075e-03
+  [INVERSION] M1 epoch 87: train_acc=0.9940 but val_acc=0.4824 (BELOW CHANCE). Inverting val predictions would give 0.5176. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  87  train_acc=0.9940 val_acc=0.4824 (0.6s)  qnn_weight_drift=3.914e-03
+  [INVERSION] M1 epoch 88: train_acc=0.9940 but val_acc=0.4840 (BELOW CHANCE). Inverting val predictions would give 0.5160. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  88  train_acc=0.9940 val_acc=0.4840 (0.6s)  qnn_weight_drift=4.049e-03
+  [INVERSION] M1 epoch 89: train_acc=0.9820 but val_acc=0.4840 (BELOW CHANCE). Inverting val predictions would give 0.5160. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  89  train_acc=0.9820 val_acc=0.4840 (0.6s)  qnn_weight_drift=3.819e-03
+  [INVERSION] M1 epoch 90: train_acc=0.9880 but val_acc=0.4832 (BELOW CHANCE). Inverting val predictions would give 0.5168. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  90  train_acc=0.9880 val_acc=0.4832 (0.6s)  qnn_weight_drift=4.324e-03
+  [INVERSION] M1 epoch 91: train_acc=0.9940 but val_acc=0.4792 (BELOW CHANCE). Inverting val predictions would give 0.5208. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  91  train_acc=0.9940 val_acc=0.4792 (0.6s)  qnn_weight_drift=4.110e-03
+  [INVERSION] M1 epoch 92: train_acc=0.9940 but val_acc=0.4712 (BELOW CHANCE). Inverting val predictions would give 0.5288. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  92  train_acc=0.9940 val_acc=0.4712 (0.6s)  qnn_weight_drift=3.514e-03
+  [INVERSION] M1 epoch 93: train_acc=0.9960 but val_acc=0.4832 (BELOW CHANCE). Inverting val predictions would give 0.5168. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  93  train_acc=0.9960 val_acc=0.4832 (0.6s)  qnn_weight_drift=4.372e-03
+  [INVERSION] M1 epoch 94: train_acc=0.9960 but val_acc=0.4840 (BELOW CHANCE). Inverting val predictions would give 0.5160. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  94  train_acc=0.9960 val_acc=0.4840 (0.6s)  qnn_weight_drift=4.707e-03
+  [INVERSION] M1 epoch 95: train_acc=0.9880 but val_acc=0.4776 (BELOW CHANCE). Inverting val predictions would give 0.5224. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  95  train_acc=0.9880 val_acc=0.4776 (0.6s)  qnn_weight_drift=3.798e-03
+  [INVERSION] M1 epoch 96: train_acc=0.9920 but val_acc=0.4760 (BELOW CHANCE). Inverting val predictions would give 0.5240. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  96  train_acc=0.9920 val_acc=0.4760 (0.6s)  qnn_weight_drift=4.414e-03
+  [INVERSION] M1 epoch 97: train_acc=0.9960 but val_acc=0.4736 (BELOW CHANCE). Inverting val predictions would give 0.5264. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  97  train_acc=0.9960 val_acc=0.4736 (0.6s)  qnn_weight_drift=3.685e-03
+  [INVERSION] M1 epoch 98: train_acc=0.9940 but val_acc=0.4792 (BELOW CHANCE). Inverting val predictions would give 0.5208. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  98  train_acc=0.9940 val_acc=0.4792 (0.6s)  qnn_weight_drift=3.890e-03
+  [INVERSION] M1 epoch 99: train_acc=0.9980 but val_acc=0.4800 (BELOW CHANCE). Inverting val predictions would give 0.5200. This run has likely converged to an inverted-polarity solution -- DO NOT report its result as a valid architectural outcome. See MODELS_SOURCE_OF_TRUTH.md Sec 9 (2026-07-28).
+[M1] epoch  99  train_acc=0.9980 val_acc=0.4800 (0.6s)  qnn_weight_drift=4.192e-03
+[M1] early stopping at epoch 99 (best val_acc=0.4904)
+[M1] FINAL test_acc=0.4580
+[M1] GAP@BEST train_acc=0.9880 test_acc=0.4580 gap=+53.00 pp (both measured on the epoch-79 checkpoint, eval mode)
+[PREDICTIONS] saved 2000 per-image test predictions, recomputed acc=0.4580 matches reported
+Saved -> results_v14_k10_all_n50/result_M1_mnist_seed43_alpha0.0.json
+=== Job end: Fri Oct 16 13:09:02 AEDT 2026 rc=0 ===
+
+======================================================================================
+                  Resource Usage on 2026-10-16 13:09:06:
+   Job Id:             181330789.gadi-pbs
+   Project:            wa66
+   Exit Status:        0
+   Service Units:      0.84
+   NCPUs Requested:    12                  CPU Time Used: 00:01:18        
+   Memory Requested:   32.0GB                Memory Used: 849.47MB        
+   NGPUs Requested:    1                 GPU Utilisation: 7%              
+                                         GPU Memory Used: 526.0MB         
+   Walltime Requested: 02:00:00            Walltime Used: 00:01:24        
+   JobFS Requested:    100.0MB                JobFS Used: 0B              
+======================================================================================

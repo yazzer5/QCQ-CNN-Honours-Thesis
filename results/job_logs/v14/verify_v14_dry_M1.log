@@ -1,0 +1,49 @@
+[BACKEND] torch-native quantum front-end (exact batched tensor algebra, autograd gradients == parameter-shift).
+[MULTICLASS] n_classes=5 n_obs=15 head_variant=linear
+[LOSS] ce (softmax cross-entropy, Long et al. eq 21 -- DEVIATION from v6-v10, which used bce)
+[DETERMINISM] torch deterministic algorithms ENABLED. Two runs with the same seed should now agree exactly; if they do not, something else is injecting nondeterminism and must be found before the grid is trusted.
+[PROTOCOL] REDUCED-SCALE / FEASIBILITY RUN -- not the locked full protocol. N_TRAIN=250 N_VAL=625 N_TEST=1000 MAX_EPOCHS=2 PATIENCE=1 MIN_EPOCHS_QUANTUM_FRONTEND=30. Label any results from this run accordingly -- do not mix with full-scale (5000/1250/1000, 100 max epochs) results.
+[PROTOCOL RESOLVED] n_train=250 n_val=625 n_test=1000 max_epochs=2 patience=1 min_epochs_quantum=30 batch_size=32 lr=0.001 weight_decay=0.0001 dropout=0.0 n_classes=5 n_obs=15 head_variant=linear loss=ce qnn_backend=torch deterministic=True save_predictions=True classes=[1, 3, 5, 8, 9]
+Device: cpu
+[CODE VERSION] v10
+Run: model=M1 dataset=mnist seed=42 noise_alpha=0.0 batch_size=32 lr=0.001 weight_decay=0.0001 dropout=0.0
+[CLASS PAIR] trainer received classes=[1, 3, 5, 8, 9]
+[VERIFIED] M1 params: front=0 backbone=1464 back_end=216 total=1680 (expected 1680) OK
+[DEVICE] whole model on cpu (front-end included -- v5 torch-native quantum simulation)
+[DATA] mnist: 5 classes, pool=875 test=1000 (175 train+val and 200 test per class)
+[V14] SPLIT train n=250 labels=0,1,2,3,4 per_class=47,54,57,43,49 min=43 max=57 hash=545c1d22f347f48f
+[V14] SPLIT val   n=625 labels=0,1,2,3,4 per_class=128,121,118,132,126 min=118 max=132 hash=e44b45c020c5d05c
+[V14] SPLIT test  n=1000 labels=0,1,2,3,4 per_class=200,200,200,200,200 min=200 max=200 hash=5f7aa0841fc7417f
+[V14] SPLIT overlap train&val=0 train&test=0 val&test=0
+Split sizes: train=250 val=625 test=1000
+[V135] warmup: model=M1 min_epochs=30
+[GRADCHECK] M1:
+  backbone.conv1.weight                    |grad|=4.334e-01
+  backbone.conv1.bias                      |grad|=5.636e-02
+  backbone.conv2.weight                    |grad|=4.410e-01
+  backbone.conv2.bias                      |grad|=1.208e-01
+  back_end.fc2.weight                      |grad|=3.509e-01
+  back_end.fc2.bias                        |grad|=1.924e-01
+  back_end.qnn.weight                      |grad|=1.021e-01
+  back_end.fc3.weight                      |grad|=3.341e-01
+  back_end.fc3.bias                        |grad|=1.862e-01
+[GRADCHECK] M1: all trainable tensors receive gradient. OK
+[OUTPUT DIVERSITY] M1: logits for 8 distinct samples (label in brackets):
+  sample 0  label=3  logits=[ 0.1270397  -0.2719581  -0.2434452   0.04342272  0.04279587]
+  sample 1  label=2  logits=[ 0.39959267 -0.20515826 -0.27980027 -0.08173873  0.18514282]
+  sample 2  label=3  logits=[ 0.34938267 -0.2040943  -0.26688763 -0.055038    0.14464581]
+  sample 3  label=2  logits=[ 0.35522756 -0.21439657 -0.2785     -0.05067592  0.15335724]
+  sample 4  label=4  logits=[ 0.31725276 -0.18793282 -0.24463765 -0.04932051  0.1126048 ]
+  sample 5  label=3  logits=[ 0.38416782 -0.19955072 -0.27017167 -0.07718189  0.17058802]
+  sample 6  label=3  logits=[ 0.32868764 -0.20485978 -0.26251453 -0.04470525  0.12943467]
+  sample 7  label=4  logits=[ 0.21393251 -0.2543298  -0.26579964  0.01964326  0.08110446]
+  per-class std across samples: [0.09275676 0.02932406 0.01367565 0.04474684 0.04735094]  (nonzero spread)
+[TRAIN/EVAL SHIFT] M1: dropout_rate=0.0
+  mean logit margin (class0-class1)  train-mode=+0.5382  eval-mode=+0.5382
+  predictions flipping between modes: 0/32
+[M1] epoch   1  train_acc=0.2520 val_acc=0.2288 (0.2s)  qnn_weight_drift=3.056e-03
+[M1] epoch   2  train_acc=0.3200 val_acc=0.4224 (0.1s)  qnn_weight_drift=5.351e-03
+[M1] FINAL test_acc=0.4000
+[M1] GAP@BEST train_acc=0.4000 test_acc=0.4000 gap=+0.00 pp (both measured on the epoch-2 checkpoint, eval mode)
+[PREDICTIONS] saved 1000 per-image test predictions, recomputed acc=0.4000 matches reported
+Saved -> /scratch/wa66/yh2481/tmp/v14verify_z6x9uva5/run_M1_5_50_42_m1_52l918gt/result_M1_mnist_seed42_alpha0.0.json
