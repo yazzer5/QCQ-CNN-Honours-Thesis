@@ -1,0 +1,240 @@
+-rw-r--r-- 1 yh2481 wa66   5240 Oct 21 13:17 closed_form_zz_v16.py
+-rw-r--r-- 1 yh2481 wa66  10963 Oct  4 13:53 qnn_torch.py
+-rw-r--r-- 1 yh2481 wa66  11494 Aug 13 15:12 quanv_torch.py
+-rw-r--r-- 1 yh2481 wa66 115325 Oct 21 13:17 train_gadi.py
+-rw-r--r-- 1 yh2481 wa66   7865 Oct 21 13:17 v16_tools.py
+=== Job start: Wed Oct 21 19:00:24 AEDT 2026 ===
+[V16A] ARM=c K=5 TAG=A N=500 CLASSES=1,3,5,8,9 MODEL=M2c SEED=47 OUT=results_v16a_c_k5_A_n500 CONT=0
+[V16A] split train=2500 val=625 test=1000 max_epochs=200 budget=0.85h flags=[--v16_head m2c --v16_sidecar]
+Data root: /g/data/wa66/yh2481/qcq_cnn_v14/data
+
+[1/4] Verifying staged archives
+      ok       MNIST/raw/train-images-idx3-ubyte.gz  (9,912,422 bytes)
+      ok       MNIST/raw/train-labels-idx1-ubyte.gz  (28,881 bytes)
+      ok       MNIST/raw/t10k-images-idx3-ubyte.gz  (1,648,877 bytes)
+      ok       MNIST/raw/t10k-labels-idx1-ubyte.gz  (4,542 bytes)
+      ok       FashionMNIST/raw/train-images-idx3-ubyte.gz  (26,421,880 bytes)
+      ok       FashionMNIST/raw/train-labels-idx1-ubyte.gz  (29,515 bytes)
+      ok       FashionMNIST/raw/t10k-images-idx3-ubyte.gz  (4,422,102 bytes)
+      ok       FashionMNIST/raw/t10k-labels-idx1-ubyte.gz  (5,148 bytes)
+
+[2/4] Extracting archives (so torchvision never enters download())
+      present  train-images-idx3-ubyte
+      present  train-labels-idx1-ubyte
+      present  t10k-images-idx3-ubyte
+      present  t10k-labels-idx1-ubyte
+      present  train-images-idx3-ubyte
+      present  train-labels-idx1-ubyte
+      present  t10k-images-idx3-ubyte
+      present  t10k-labels-idx1-ubyte
+
+[3/4] Opening datasets with download=False (offline proof)
+      MNIST         train=60,000  test=10,000
+      FashionMNIST  train=60,000  test=10,000
+
+[4/4] Checking MNIST classes 1,3,5,8,9
+      protocol: 2500+625 train+val and 1000 test across 5 classes -> need 625 train and 200 test PER CLASS
+      class 1 (digit 1     ) train=6,742  test=1,135
+      class 3 (digit 3     ) train=6,131  test=1,010
+      class 5 (digit 5     ) train=5,421  test=892
+      class 8 (digit 8     ) train=5,851  test=974
+      class 9 (digit 9     ) train=5,949  test=1,009
+
+  PREFLIGHT PASSED -- MNIST 5-class (1, 3, 5, 8, 9) is ready. No network required.
+
+[BACKEND] torch-native quantum front-end (exact batched tensor algebra, autograd gradients == parameter-shift).
+[MULTICLASS] n_classes=5 n_obs=15 head_variant=linear
+[LOSS] ce (softmax cross-entropy, Long et al. eq 21 -- DEVIATION from v6-v10, which used bce)
+[DETERMINISM] torch deterministic algorithms ENABLED. Two runs with the same seed should now agree exactly; if they do not, something else is injecting nondeterminism and must be found before the grid is trusted.
+[PROTOCOL] REDUCED-SCALE / FEASIBILITY RUN -- not the locked full protocol. N_TRAIN=2500 N_VAL=625 N_TEST=1000 MAX_EPOCHS=200 PATIENCE=20 MIN_EPOCHS_QUANTUM_FRONTEND=30. Label any results from this run accordingly -- do not mix with full-scale (5000/1250/1000, 100 max epochs) results.
+[PROTOCOL RESOLVED] n_train=2500 n_val=625 n_test=1000 max_epochs=200 patience=20 min_epochs_quantum=30 batch_size=32 lr=0.001 weight_decay=0.0001 dropout=0.0 n_classes=5 n_obs=15 head_variant=linear loss=ce qnn_backend=torch deterministic=True save_predictions=True classes=[1, 3, 5, 8, 9]
+Device: cuda
+[CODE VERSION] v10
+Run: model=M2 dataset=mnist seed=47 noise_alpha=0.0 batch_size=32 lr=0.001 weight_decay=0.0001 dropout=0.0
+[CLASS PAIR] trainer received classes=[1, 3, 5, 8, 9]
+[VERIFIED] M2 params: front=6 backbone=1464 back_end=216 total=1686 (expected 1686) OK
+[V16] HEAD m2c installed model=M2 seed=47 qnn=back_end.qnn readout=back_end.fc3 z=back_end.fc2 wiring=identity params_M2=1686 params_M2c=1665 expected_M2c=1665 VERIFIED
+[DEVICE] whole model on cuda (front-end included -- v5 torch-native quantum simulation)
+[DATA] mnist: 5 classes, pool=3125 test=1000 (625 train+val and 200 test per class)
+[V14] SPLIT train n=2500 labels=0,1,2,3,4 per_class=505,499,512,488,496 min=488 max=512 hash=0ba466b1bcf40ac4
+[V14] SPLIT val   n=625 labels=0,1,2,3,4 per_class=120,126,113,137,129 min=113 max=137 hash=bbc5dc86276de7fc
+[V14] SPLIT test  n=1000 labels=0,1,2,3,4 per_class=200,200,200,200,200 min=200 max=200 hash=5f7aa0841fc7417f
+[V14] SPLIT overlap train&val=0 train&test=0 val&test=0
+Split sizes: train=2500 val=625 test=1000
+[V135] warmup: model=M2 min_epochs=30
+[GRADCHECK] M2:
+  front_end.weights                        |grad|=8.527e-03
+  backbone.conv1.weight                    |grad|=2.025e-01
+  backbone.conv1.bias                      |grad|=4.660e-02
+  backbone.conv2.weight                    |grad|=3.724e-01
+  backbone.conv2.bias                      |grad|=1.134e-01
+  back_end.fc2.weight                      |grad|=3.318e-01
+  back_end.fc2.bias                        |grad|=2.120e-01
+  back_end.fc3.weight                      |grad|=3.342e-01
+  back_end.fc3.bias                        |grad|=1.404e-01
+[GRADCHECK] M2: all trainable tensors receive gradient. OK
+[OUTPUT DIVERSITY] M2: logits for 8 distinct samples (label in brackets):
+  sample 0  label=4  logits=[-0.03176244  0.14528644 -0.28750065 -0.23523942 -0.33226317]
+  sample 1  label=1  logits=[-0.11114114  0.00255793 -0.33712274 -0.33408046 -0.43997625]
+  sample 2  label=2  logits=[-0.18875217 -0.15808341 -0.48239952 -0.49308902 -0.54696023]
+  sample 3  label=2  logits=[-0.12560949  0.1367765  -0.40537083 -0.29576692 -0.37554243]
+  sample 4  label=2  logits=[-0.12454062 -0.11726791 -0.34067345 -0.39691368 -0.48493132]
+  sample 5  label=4  logits=[-0.22238669 -0.19342986 -0.54723716 -0.55384535 -0.5779081 ]
+  sample 6  label=1  logits=[-0.16808271 -0.04155824 -0.4326399  -0.4037505  -0.49102572]
+  sample 7  label=1  logits=[-0.2622242  -0.03882435 -0.56516767 -0.48096249 -0.5257434 ]
+  per-class std across samples: [0.07195956 0.12562205 0.10146517 0.10774533 0.08460727]  (nonzero spread)
+[TRAIN/EVAL SHIFT] M2: dropout_rate=0.0
+  mean logit margin (class0-class1)  train-mode=-0.1106  eval-mode=-0.1106
+  predictions flipping between modes: 0/32
+[M2] epoch   1  train_acc=0.4000 val_acc=0.4928 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=4.377e-04
+[M2] epoch   2  train_acc=0.5868 val_acc=0.6624 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=5.524e-04
+[M2] epoch   3  train_acc=0.7600 val_acc=0.7440 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=1.015e-03
+[OUTPUT DIVERSITY] M2 (after epoch 3): logits for 8 distinct samples (label in brackets):
+  sample 0  label=3  logits=[ 0.68123204 -1.015825    0.99144644  0.53212553 -0.05227745]
+  sample 1  label=2  logits=[-1.1054647  -0.08931538  0.52694964  0.39456213 -0.1581416 ]
+  sample 2  label=3  logits=[-1.5812039   0.86487174 -0.6217709  -0.54327327  0.08138065]
+  sample 3  label=0  logits=[ 1.885159   -0.79911923 -0.05049041 -0.29669803 -0.55339706]
+  sample 4  label=4  logits=[-1.2390013   0.06649013 -0.01913144  0.4752598   0.9635268 ]
+  sample 5  label=3  logits=[-0.8659013  -0.31456086  0.73777896  0.5930931   0.01462294]
+  sample 6  label=2  logits=[-0.92281276 -0.22451669  0.7670384   0.4322184  -0.23994397]
+  sample 7  label=3  logits=[-1.0256927  -0.18472555  0.6122749   0.51011825 -0.0358413 ]
+  per-class std across samples: [1.1802688  0.5675164  0.5443528  0.43041313 0.43556508]  (nonzero spread)
+[TRAIN/EVAL SHIFT] M2 (after epoch 3): dropout_rate=0.0
+  mean logit margin (class0-class1)  train-mode=-0.0888  eval-mode=-0.0888
+  predictions flipping between modes: 0/32
+[M2] epoch   4  train_acc=0.8216 val_acc=0.8272 (2.0s)  qnn_weight_drift=0.000e+00  fe_gradvar=1.611e-03
+[M2] epoch   5  train_acc=0.8780 val_acc=0.8544 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=1.781e-03
+[M2] epoch   6  train_acc=0.8996 val_acc=0.8896 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=2.728e-03
+[M2] epoch   7  train_acc=0.9120 val_acc=0.8768 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=2.717e-03
+[M2] epoch   8  train_acc=0.9256 val_acc=0.8928 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=2.591e-03
+[M2] epoch   9  train_acc=0.9364 val_acc=0.9008 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=8.911e-03
+[M2] epoch  10  train_acc=0.9376 val_acc=0.9120 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=3.370e-03
+[M2] epoch  11  train_acc=0.9500 val_acc=0.9216 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=2.859e-03
+[M2] epoch  12  train_acc=0.9576 val_acc=0.9104 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=2.943e-03
+[M2] epoch  13  train_acc=0.9592 val_acc=0.9232 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=2.415e-03
+[M2] epoch  14  train_acc=0.9664 val_acc=0.9200 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=2.208e-03
+[M2] epoch  15  train_acc=0.9680 val_acc=0.9200 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=1.827e-03
+[OUTPUT DIVERSITY] M2 (after epoch 15): logits for 8 distinct samples (label in brackets):
+  sample 0  label=2  logits=[-0.9896897 -1.3887923  3.246477   1.7151179 -1.675787 ]
+  sample 1  label=1  logits=[-0.3849582  3.1900394 -1.2295398 -2.1721818 -1.7622834]
+  sample 2  label=1  logits=[-0.1761855   2.7388406  -0.64874107 -2.236271   -1.7353431 ]
+  sample 3  label=0  logits=[ 3.674479   -1.5211458  -0.9895469  -0.10010287 -0.9329892 ]
+  sample 4  label=3  logits=[-0.7360284  -1.7346408   0.88516724  3.0959818  -0.5865738 ]
+  sample 5  label=0  logits=[ 3.698196   -1.7647865  -0.74287176  0.09690143 -0.6654914 ]
+  sample 6  label=3  logits=[-0.66633075 -1.7360432   1.8213165   2.7558246  -1.1351429 ]
+  sample 7  label=4  logits=[-0.8159734  -0.2978285  -1.8189499  -0.37114307  4.028158  ]
+  per-class std across samples: [2.0130134 2.082443  1.7475849 2.036412  1.9125454]  (nonzero spread)
+[TRAIN/EVAL SHIFT] M2 (after epoch 15): dropout_rate=0.0
+  mean logit margin (class0-class1)  train-mode=-0.2445  eval-mode=-0.2445
+  predictions flipping between modes: 0/32
+[M2] epoch  16  train_acc=0.9684 val_acc=0.9104 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=2.370e-03
+[M2] epoch  17  train_acc=0.9716 val_acc=0.9264 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=1.935e-03
+[M2] epoch  18  train_acc=0.9772 val_acc=0.9296 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=2.267e-03
+[M2] epoch  19  train_acc=0.9800 val_acc=0.9264 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=2.410e-03
+[M2] epoch  20  train_acc=0.9820 val_acc=0.9376 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=1.834e-03
+[M2] epoch  21  train_acc=0.9840 val_acc=0.9408 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=1.666e-03
+[M2] epoch  22  train_acc=0.9848 val_acc=0.9232 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=1.201e-03
+[M2] epoch  23  train_acc=0.9856 val_acc=0.9280 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=2.444e-03
+[M2] epoch  24  train_acc=0.9852 val_acc=0.9296 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=1.474e-03
+[M2] epoch  25  train_acc=0.9888 val_acc=0.9328 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=1.492e-03
+[OUTPUT DIVERSITY] M2 (after epoch 25): logits for 8 distinct samples (label in brackets):
+  sample 0  label=2  logits=[-1.0910846  -0.49319726  4.5099826  -1.4231397  -1.9151199 ]
+  sample 1  label=3  logits=[-2.3438575  -0.78326607 -2.5706835   2.616137    3.1689718 ]
+  sample 2  label=1  logits=[-0.72451437  3.9097912  -0.6074184  -2.7751167  -1.6354406 ]
+  sample 3  label=1  logits=[-0.83324623  4.311208   -1.2377576  -2.598223   -1.6648159 ]
+  sample 4  label=2  logits=[-1.9751046  -0.6266526   4.5657177   0.22680183 -2.5565412 ]
+  sample 5  label=4  logits=[-1.5688564 -1.654021  -2.756823   2.034751   4.0449915]
+  sample 6  label=1  logits=[-0.5751115  4.329951  -1.4182997 -2.5959198 -1.8580582]
+  sample 7  label=1  logits=[-1.9195613  4.2566595 -1.3553677 -1.9912864 -0.7565822]
+  per-class std across samples: [0.66223353 2.745879   2.9531837  2.1688116  2.5304103 ]  (nonzero spread)
+[TRAIN/EVAL SHIFT] M2 (after epoch 25): dropout_rate=0.0
+  mean logit margin (class0-class1)  train-mode=-0.1111  eval-mode=-0.1111
+  predictions flipping between modes: 0/32
+[M2] epoch  26  train_acc=0.9888 val_acc=0.9296 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=2.113e-03
+[M2] epoch  27  train_acc=0.9776 val_acc=0.9328 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=5.929e-03
+[M2] epoch  28  train_acc=0.9892 val_acc=0.9344 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=1.376e-03
+[M2] epoch  29  train_acc=0.9904 val_acc=0.9328 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=1.513e-03
+[M2] epoch  30  train_acc=0.9924 val_acc=0.9360 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=1.089e-03
+[M2] epoch  31  train_acc=0.9920 val_acc=0.9312 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=1.311e-03
+[M2] epoch  32  train_acc=0.9940 val_acc=0.9264 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=6.521e-04
+[M2] epoch  33  train_acc=0.9964 val_acc=0.9376 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=6.770e-04
+[M2] epoch  34  train_acc=0.9960 val_acc=0.9216 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=6.526e-04
+[M2] epoch  35  train_acc=0.9948 val_acc=0.9408 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=9.331e-04
+[M2] epoch  36  train_acc=0.9968 val_acc=0.9264 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=7.323e-04
+[M2] epoch  37  train_acc=0.9964 val_acc=0.9312 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=9.022e-04
+[M2] epoch  38  train_acc=0.9968 val_acc=0.9280 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=1.408e-03
+[M2] epoch  39  train_acc=0.9976 val_acc=0.9280 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=6.832e-04
+[M2] epoch  40  train_acc=0.9980 val_acc=0.9296 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=5.832e-04
+[M2] epoch  41  train_acc=0.9980 val_acc=0.9280 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=6.527e-04
+[M2] epoch  42  train_acc=0.9968 val_acc=0.9312 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=9.102e-04
+[M2] epoch  43  train_acc=0.9980 val_acc=0.9280 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=5.713e-04
+[M2] epoch  44  train_acc=0.9968 val_acc=0.9312 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=5.966e-04
+[M2] epoch  45  train_acc=0.9964 val_acc=0.9344 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=1.025e-03
+[M2] epoch  46  train_acc=0.9980 val_acc=0.9440 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=4.208e-04
+[M2] epoch  47  train_acc=0.9992 val_acc=0.9360 (2.0s)  qnn_weight_drift=0.000e+00  fe_gradvar=2.952e-04
+[M2] epoch  48  train_acc=0.9992 val_acc=0.9360 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=3.310e-04
+[M2] epoch  49  train_acc=0.9992 val_acc=0.9424 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=1.758e-04
+[M2] epoch  50  train_acc=0.9992 val_acc=0.9376 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=2.386e-04
+[M2] epoch  51  train_acc=0.9992 val_acc=0.9376 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=1.656e-04
+[M2] epoch  52  train_acc=0.9992 val_acc=0.9280 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=1.242e-04
+[M2] epoch  53  train_acc=0.9992 val_acc=0.9424 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=1.677e-04
+[M2] epoch  54  train_acc=0.9992 val_acc=0.9408 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=2.192e-04
+[M2] epoch  55  train_acc=0.9992 val_acc=0.9328 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=2.548e-04
+[M2] epoch  56  train_acc=0.9992 val_acc=0.9424 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=2.474e-04
+[M2] epoch  57  train_acc=0.9992 val_acc=0.9456 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=2.621e-04
+[M2] epoch  58  train_acc=0.9988 val_acc=0.9264 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=3.929e-04
+[M2] epoch  59  train_acc=0.9984 val_acc=0.9408 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=5.286e-04
+[M2] epoch  60  train_acc=0.9992 val_acc=0.9520 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=6.786e-05
+[M2] epoch  61  train_acc=0.9992 val_acc=0.9440 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=7.869e-05
+[M2] epoch  62  train_acc=0.9992 val_acc=0.9472 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=6.441e-05
+[M2] epoch  63  train_acc=0.9992 val_acc=0.9392 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=1.004e-04
+[M2] epoch  64  train_acc=0.9992 val_acc=0.9408 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=1.087e-04
+[M2] epoch  65  train_acc=0.9992 val_acc=0.9424 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=1.169e-04
+[M2] epoch  66  train_acc=0.9936 val_acc=0.9184 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=3.484e-03
+[M2] epoch  67  train_acc=0.9788 val_acc=0.9392 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=1.182e-02
+[M2] epoch  68  train_acc=0.9900 val_acc=0.9440 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=3.942e-03
+[M2] epoch  69  train_acc=0.9972 val_acc=0.9488 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=9.698e-04
+[M2] epoch  70  train_acc=0.9992 val_acc=0.9456 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=2.307e-04
+[M2] epoch  71  train_acc=0.9992 val_acc=0.9472 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=5.544e-05
+[M2] epoch  72  train_acc=0.9992 val_acc=0.9552 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=9.649e-05
+[M2] epoch  73  train_acc=0.9992 val_acc=0.9472 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=2.579e-05
+[M2] epoch  74  train_acc=0.9992 val_acc=0.9504 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=2.826e-05
+[M2] epoch  75  train_acc=0.9992 val_acc=0.9456 (2.0s)  qnn_weight_drift=0.000e+00  fe_gradvar=1.779e-05
+[M2] epoch  76  train_acc=0.9992 val_acc=0.9504 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=2.106e-05
+[M2] epoch  77  train_acc=0.9992 val_acc=0.9488 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=2.740e-05
+[M2] epoch  78  train_acc=0.9992 val_acc=0.9488 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=1.710e-05
+[M2] epoch  79  train_acc=0.9992 val_acc=0.9472 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=2.519e-05
+[M2] epoch  80  train_acc=0.9992 val_acc=0.9440 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=3.960e-05
+[M2] epoch  81  train_acc=0.9992 val_acc=0.9456 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=4.668e-05
+[M2] epoch  82  train_acc=0.9992 val_acc=0.9488 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=2.994e-05
+[M2] epoch  83  train_acc=0.9992 val_acc=0.9456 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=3.807e-05
+[M2] epoch  84  train_acc=0.9992 val_acc=0.9520 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=1.705e-05
+[M2] epoch  85  train_acc=0.9992 val_acc=0.9472 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=2.046e-05
+[M2] epoch  86  train_acc=0.9992 val_acc=0.9472 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=4.040e-05
+[M2] epoch  87  train_acc=0.9992 val_acc=0.9488 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=1.988e-05
+[M2] epoch  88  train_acc=0.9992 val_acc=0.9456 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=2.365e-05
+[M2] epoch  89  train_acc=0.9992 val_acc=0.9472 (2.0s)  qnn_weight_drift=0.000e+00  fe_gradvar=1.462e-05
+[M2] epoch  90  train_acc=0.9992 val_acc=0.9392 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=6.794e-05
+[M2] epoch  91  train_acc=0.9992 val_acc=0.9456 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=4.644e-05
+[M2] epoch  92  train_acc=0.9992 val_acc=0.9456 (2.1s)  qnn_weight_drift=0.000e+00  fe_gradvar=6.566e-05
+[M2] early stopping at epoch 92 (best val_acc=0.9552)
+[M2] FINAL test_acc=0.9360
+[M2] GAP@BEST train_acc=0.9992 test_acc=0.9360 gap=+6.32 pp (both measured on the epoch-72 checkpoint, eval mode)
+[PREDICTIONS] saved 1000 per-image test predictions, recomputed acc=0.9360 matches reported
+Saved -> results_v16a_c_k5_A_n500/result_M2_mnist_seed47_alpha0.0.json
+[V16] RUN model=M2c arch=M2 head=m2c seed=47 params=1665 source=memory encoding=index selfcheck=MATCH (acc 0.9360 vs result JSON 0.936)
+=== Job end: Wed Oct 21 19:03:50 AEDT 2026 rc=0 ===
+
+======================================================================================
+                  Resource Usage on 2026-10-21 19:03:54:
+   Job Id:             181840088.gadi-pbs
+   Project:            wa66
+   Exit Status:        0
+   Service Units:      2.10
+   NCPUs Requested:    12                  CPU Time Used: 00:03:23        
+   Memory Requested:   32.0GB                Memory Used: 778.28MB        
+   NGPUs Requested:    1                 GPU Utilisation: 6%              
+                                         GPU Memory Used: 526.0MB         
+   Walltime Requested: 01:00:00            Walltime Used: 00:03:30        
+   JobFS Requested:    100.0MB                JobFS Used: 5.03KB          
+======================================================================================

@@ -1,0 +1,134 @@
+#!/bin/bash
+#PBS -N v11_mri
+#PBS -P wa66
+#PBS -q gpuvolta
+#PBS -l walltime=03:00:00
+#PBS -l ncpus=12
+#PBS -l ngpus=1
+#PBS -l mem=32GB
+#PBS -l jobfs=10GB
+#PBS -l storage=gdata/wa66
+#PBS -v MODEL=M2,SEED=42,CONT=0
+
+# ═══════════════════════════════════════════════════════════════════════
+# BRAIN TUMOUR MRI GRID — v11. Arm (a), iso-parametric, binary.
+#
+# WHY THIS EXPERIMENT EXISTS
+# Long et al. run three datasets: MNIST 3v5, Fashion-MNIST, and a Kaggle
+# brain MRI set. The first two are done. MRI is the third leg of the
+# replication, and it is where Long reports by far his largest quantum
+# advantage: +5.12 pp for QCQ-CNN over QCCNN, against sub-1 pp margins on
+# MNIST and Fashion-MNIST. If a quantum advantage exists anywhere in his
+# results it is here, which makes this the most informative task left.
+#
+# DATASET (see DECISIONS_v11_brain_tumor.md for all eight decisions)
+#   7,200-image Kaggle set. The 3,264-image set was DISQUALIFIED: 88 of
+#   its 394 test images (22.3%) are byte-identical copies of training
+#   images, all in the no_tumor class. Long's split (2089+653+523=3265)
+#   matches that set's total of 3264, so his MRI result may rest on a
+#   contaminated test set. Raise this in the Discussion.
+#
+#   Mapping is Option A: malignant = glioma, benign = meningioma +
+#   pituitary, notumor DROPPED. Long states benign vs malignant but never
+#   says which category maps where, and his counts (790/2745) reconcile
+#   with neither dataset -- so the mapping is a documented deviation.
+#
+# PROTOCOL: 2240/560/772, balanced 50/50 in every split. Glioma is the
+# bottleneck -- it is the entire malignant class, and after dedup there
+# are only 1400 in Training and 386 in Testing, so a balanced design
+# cannot exceed 2x1400 for train+val and 2x386 for test. The usual
+# 5000/1250/1000 is not reachable.
+#
+#   batch 32, AdamW lr 1e-3 wd 1e-4, dropout 0.0, patience 10,
+#   min_epochs 30, max_epochs 100, qnn_backend torch, seeds {42..46},
+#   alpha=0, BCE loss (binary -- ce was a 10-class-specific amendment).
+#
+# EXPECTED MDE: 3-4 pp, driven by the 772-image test set. That is the
+# coarsest of any grid in this project. Report it with every null.
+#
+# SPLIT SIZES ARE NOT OVERRIDES. --n_train/--n_val/--n_test are passed as
+# a CROSS-CHECK: the MRI splits are fixed when the cache is built, and
+# load_dataset() raises if the flags disagree with what is in the file.
+# train_gadi.py v11 therefore does not count them toward the REDUCED-SCALE
+# banner for this dataset. Counting them is what mislabelled all 20 v10
+# jobs (AMENDMENT_2026-08-14 / 2026-09-01).
+#
+# The integrity gate reads [PROTOCOL RESOLVED], printed by train_gadi.py
+# from its resolved variables -- not a hardcoded echo.
+# ═══════════════════════════════════════════════════════════════════════
+
+set -e
+cd "$PBS_O_WORKDIR/.."
+echo "PWD=$(pwd)"
+ls -l train_gadi.py quanv_torch.py qnn_torch.py || { echo "FATAL: repo root not found"; exit 1; }
+
+module load cuda/11.7.0
+source /g/data/wa66/yh2481/miniconda3/etc/profile.d/conda.sh
+conda activate qcqcnn
+export PYTHONPATH=""
+
+# Must be set BEFORE the process creates its cuBLAS handle. train_gadi.py
+# also sets it via os.environ.setdefault, but that runs after torch is
+# imported, which PyTorch documents as too late.
+export CUBLAS_WORKSPACE_CONFIG=:4096:8
+
+echo "=== Job start: $(date) ==="
+echo "MODEL=$MODEL DATASET=mri SEED=$SEED CONT=$CONT [v11 brain tumour, Option A]"
+
+# MRI has its own preflight. It checks the cache CONTENT hash (not the
+# .npz file hash -- that is a zip container and is not portable across
+# numpy/zlib builds), the locked class mapping, split sizes, exact class
+# balance, normalisation, and finiteness. Guarded with `|| exit 1` for the
+# same reason as every other grid.
+python scripts/preflight_mri.py --cache ./data/mri_v11_cache.npz \
+    || { echo "FATAL: MRI preflight failed -- not training"; exit 1; }
+
+nvidia-smi --query-gpu=name,memory.total --format=csv
+
+nvidia-smi --query-gpu=timestamp,utilization.gpu,memory.used \
+    --format=csv -l 2 > gpu_util_v11_${MODEL}_s${SEED}.csv &
+NVSMI_PID=$!
+
+set +e
+python train_gadi.py \
+    --model "$MODEL" \
+    --dataset mri \
+    --seed "$SEED" \
+    --noise_alpha 0.0 \
+    --deterministic \
+    --save_predictions \
+    --n_train 2240 \
+    --n_val 560 \
+    --n_test 772 \
+    --output_dir ./results_v11_mri \
+    --data_root ./data \
+    --checkpoint_dir ./ckpt_v11_mri \
+    --time_budget_hours 2.5
+RC=$?
+set -e
+
+kill $NVSMI_PID 2>/dev/null || true
+
+if [ $RC -eq 99 ]; then
+    # CONTINUATION CAP, carried from v10. An unbounded requeue loop burns
+    # SU silently if the epoch budget is never met. This dataset is
+    # SMALLER than every previous grid (2240 train vs 5000), so jobs
+    # should finish well inside the budget -- if this fires at all,
+    # something is wrong, and it should not fire three times.
+    if [ "$CONT" -ge 3 ]; then
+        echo "=== FATAL: hit the time budget $CONT times. NOT resubmitting. ==="
+        echo "This grid trains on 2240 images, fewer than any previous grid."
+        echo "Investigate epoch timing before spending more SU."
+        echo "=== Job end: $(date) rc=99 ==="
+        exit 1
+    fi
+    echo "Time budget reached -- submitting continuation $((CONT+1))/3."
+    echo "NOTE: a resumed run reshuffles and is NOT bit-reproducible, so"
+    echo "--deterministic no longer holds for this config. Flag it."
+    cd "$PBS_O_WORKDIR"
+    qsub -v MODEL=$MODEL,SEED=$SEED,CONT=$((CONT+1)) run11_mri_grid.pbs
+    exit 0
+fi
+
+echo "=== Job end: $(date) rc=$RC ==="
+exit $RC

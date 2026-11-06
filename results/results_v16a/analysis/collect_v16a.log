@@ -1,0 +1,51 @@
+Loaded 180 runs. Max |accuracy from predictions - test_acc| = 1.42e-14 pp
+
+Parameter counts (verified in every job log):
+  K=5 : M2(w15) 1686   M2c 1665   M3 1725
+  K=10: M2(w15) 1766   M2c 1730   M3 1805
+  M2c = M2 - 6 circuit parameters - Linear(15->K) + Linear(12->K)
+
+Accuracy (%), mean +- seed SD, n = 10 seeds per cell
+  K          N    M2 (w15)         M2c              M3              
+  5 pooled   50   67.95 +- 4.82    67.43 +- 9.08    81.47 +- 2.92   
+  5 pooled   500  90.68 +- 1.61    91.01 +- 1.41    92.93 +- 0.51   
+  5 A        50   67.39 +- 5.18    65.85 +- 10.11   81.10 +- 2.93   
+  5 A        500  90.44 +- 1.74    90.89 +- 2.03    92.65 +- 0.94   
+  5 B        50   68.51 +- 7.40    69.01 +- 8.85    81.84 +- 4.12   
+  5 B        500  90.93 +- 1.99    91.12 +- 1.45    93.21 +- 0.67   
+  10         50   47.01 +- 6.45    48.34 +- 6.59    64.14 +- 3.88   
+  10         500  79.22 +- 2.18    79.71 +- 2.22    81.59 +- 1.51   
+
+PRIMARY: D = M2c - M2(w15), paired over seeds; TOST +-1 pp; Holm within K (2 cells)
+  K=5  N=50  D=-0.52 [-5.36, +4.32]  p=0.8134 p_holm=1.0000  MDE=6.73  TOST p=0.4137 p_holm=0.4137  not shown either way
+  K=5  N=500 D=+0.32 [-1.00, +1.64]  p=0.5977 p_holm=1.0000  MDE=1.84  TOST p=0.1375 p_holm=0.2750  not shown either way
+      subset A N=50  D=-1.54 [-8.77, +5.69] TOST p=0.5652
+      subset A N=500 D=+0.45 [-1.17, +2.07] TOST p=0.2312
+      subset B N=50  D=+0.50 [-5.03, +6.03] TOST p=0.4212
+      subset B N=500 D=+0.19 [-1.79, +2.17] TOST p=0.1900
+  K=10 N=50  D=+1.33 [-3.27, +5.93]  p=0.5293 p_holm=1.0000  MDE=6.39  TOST p=0.5627 p_holm=0.5627  not shown either way
+  K=10 N=500 D=+0.49 [-1.21, +2.18]  p=0.5325 p_holm=1.0000  MDE=2.35  TOST p=0.2540 p_holm=0.5080  not shown either way
+
+SECONDARY (uncorrected): back-end cost with each head
+  K=5  N=50  BE=+13.52 [+11.46, +15.58] p=1.2e-07   BEc=+14.04 [+8.20, +19.88] p=0.00041   BEc/BE=1.04
+  K=5  N=500 BE=+2.25 [+1.22, +3.27] p=0.0008   BEc=+1.93 [+0.91, +2.94] p=0.0021   BEc/BE=0.86
+  K=10 N=50  BE=+17.14 [+12.38, +21.89] p=1.9e-05   BEc=+15.81 [+10.97, +20.64] p=4.2e-05   BEc/BE=0.92
+  K=10 N=500 BE=+2.37 [+0.36, +4.38] p=0.025   BEc=+1.88 [-0.16, +3.93] p=0.067   BEc/BE=0.80
+  K=5  collapse BEc(50)-BEc(500) = +12.12 [+6.07, +18.16] p=0.0014   (M2: BE(50)-BE(500) = +11.27)
+  K=10 collapse BEc(50)-BEc(500) = +13.92 [+8.50, +19.34] p=0.00026   (M2: BE(50)-BE(500) = +14.77)
+
+P2: per-image error agreement (Jaccard of error sets; kappa on correct/incorrect)
+  K=5  N=50  J(M2c_s, M2_s)=0.300  J(M2_s, M2_t)=0.272  J(M2c_s, M2_t)=0.268  kappa same=0.205 M2-M2=0.162  -> P2 holds
+  K=5  N=500 J(M2c_s, M2_s)=0.205  J(M2_s, M2_t)=0.205  J(M2c_s, M2_t)=0.203  kappa same=0.273 M2-M2=0.271  -> P2 fails
+  K=10 N=50  J(M2c_s, M2_s)=0.439  J(M2_s, M2_t)=0.419  J(M2c_s, M2_t)=0.417  kappa same=0.183 M2-M2=0.132  -> P2 holds
+  K=10 N=500 J(M2c_s, M2_s)=0.311  J(M2_s, M2_t)=0.305  J(M2c_s, M2_t)=0.295  kappa same=0.339 M2-M2=0.329  -> P2 holds
+
+PRE-REGISTERED PREDICTIONS
+  P1 (D equivalent within +-1 pp, Holm-adjusted TOST, all 4 cells): FAILS   [K5 N50 not eq, K5 N500 not eq, K10 N50 not eq, K10 N500 not eq]
+  P2 (same-seed M2c-M2 error agreement >= M2-M2 cross-seed, all 4 cells): FAILS
+  P3 (BEc at N=50 detected > 0 at both K: True; collapse BEc(50) > BEc(500) detected at both K: True): HOLDS
+
+Reading (PREREGISTRATION_v16a.md section 7):
+  P1 not shown and nothing detected -> underpowered at n = 10 in the failing cell(s); report the CI and MDE.
+
+Wrote v16a_runs.csv, v16a_summary.csv, v16a_contrasts.csv, v16a_agreement.csv, v16a_params.csv

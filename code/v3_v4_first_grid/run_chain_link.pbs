@@ -1,0 +1,65 @@
+#!/bin/bash
+#PBS -P wa66
+#PBS -q gpuvolta
+#PBS -l ncpus=12
+#PBS -l ngpus=1
+#PBS -l mem=90GB
+#PBS -l walltime=24:00:00
+#PBS -l storage=gdata/wa66
+#PBS -l jobfs=10GB
+#PBS -j oe
+#PBS -l wd
+
+# ═══════════════════════════════════════════════════════════════════════
+# run_chain_link.pbs — ONE link in a PBS-native dependency chain.
+#
+# This uses NCI's documented job-dependency mechanism
+# (https://opus.nci.org.au/display/Help/Job+Dependencies): the launcher
+# (submit_m2m3_chain.sh) submits every link for a given (model,dataset,seed)
+# combo UP FRONT from the login node, each with
+# `-W depend=afterany:<previous_jobid>` so link N+1 only starts once link N
+# has ended -- success or not. No job ever calls qsub on itself from a
+# compute node, so there's nothing to verify about compute-node qsub access.
+#
+# MODEL, DATASET, SEED, ALPHA are injected via `qsub -v` by the launcher.
+# ═══════════════════════════════════════════════════════════════════════
+
+PROJECT_DIR=/g/data/wa66/yh2481/qcq_cnn
+RESULT_FILE="${PROJECT_DIR}/results_phase1/result_${MODEL}_${DATASET}_seed${SEED}_alpha${ALPHA}.json"
+
+echo "=== Job start: $(date) ==="
+echo "MODEL=$MODEL DATASET=$DATASET SEED=$SEED ALPHA=$ALPHA"
+
+# Cheap skip: if an earlier link already produced the final result, don't
+# burn GPU time -- exit immediately. This is what makes it safe to
+# pre-submit CHAIN_MAX links per combo without knowing in advance how many
+# are actually needed: once training converges, every remaining scheduled
+# link for that combo costs seconds, not hours.
+if [ -f "$RESULT_FILE" ]; then
+    echo "Result already exists at $RESULT_FILE -- this combo finished in an" \
+         "earlier chain link. Skipping, exiting immediately."
+    echo "=== Job end (skipped): $(date) ==="
+    exit 0
+fi
+
+cd "$PROJECT_DIR"
+export PYTHONPATH=""
+source /g/data/wa66/yh2481/miniconda3/etc/profile.d/conda.sh
+conda activate qcqcnn
+
+nvidia-smi --query-gpu=name,memory.total --format=csv,noheader
+
+python train_gadi.py \
+    --model "$MODEL" \
+    --dataset "$DATASET" \
+    --seed "$SEED" \
+    --noise_alpha "$ALPHA" \
+    --output_dir "${PROJECT_DIR}/results_phase1" \
+    --data_root "${PROJECT_DIR}/data" \
+    --checkpoint_dir "${PROJECT_DIR}/checkpoints" \
+    --time_budget_hours 23.3
+
+EXIT_CODE=$?
+echo "=== Job end: $(date), python exit code: $EXIT_CODE" \
+     "(0=converged this link, 99=continues in next chain link, other=investigate) ==="
+exit $EXIT_CODE

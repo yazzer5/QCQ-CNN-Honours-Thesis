@@ -1,0 +1,21 @@
+#!/bin/bash
+#PBS -N m2_circuit_selection
+#PBS -q gpuvolta
+#PBS -l ncpus=12
+#PBS -l ngpus=1
+#PBS -l mem=48GB
+#PBS -l walltime=12:00:00
+#PBS -l jobfs=10GB
+#PBS -l storage=gdata/wa66+scratch/wa66
+#PBS -P wa66
+#PBS -o /g/data/wa66/yh2481/logs/circuit_selection_out.txt
+#PBS -e /g/data/wa66/yh2481/logs/circuit_selection_err.txt
+
+cd /g/data/wa66/yh2481
+source /g/data/wa66/yh2481/miniconda3/etc/profile.d/conda.sh
+conda activate qcqcnn
+
+PYTHONPATH="" jupyter nbconvert --to notebook \
+    --execute m2_circuit_selection.ipynb \
+    --output m2_circuit_selection_executed.ipynb \
+    --ExecutePreprocessor.timeout=43200

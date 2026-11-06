@@ -1,0 +1,103 @@
+--- qcq_cnn_v10/pbs/run10_mnist10_grid.pbs	2026-08-12 23:25:12.000000000 +0000
++++ v10_grid/pbs/run10_mnist10_grid.pbs	2026-08-13 05:13:22.617351891 +0000
+@@ -8,7 +8,7 @@
+ #PBS -l mem=32GB
+ #PBS -l jobfs=10GB
+ #PBS -l storage=gdata/wa66
+-#PBS -v MODEL=M2,SEED=42
++#PBS -v MODEL=M2,SEED=42,CONT=0
+ 
+ # ═══════════════════════════════════════════════════════════════════════
+ # MNIST 10-CLASS GRID — v10. Arm (a), iso-parametric, multiclass.
+@@ -40,11 +40,26 @@
+ # draw, 200/class), batch 32, AdamW lr 1e-3 wd 1e-4, dropout 0.0,
+ # patience 20, min_epochs 30, qnn_backend torch, seeds {42..46}, alpha=0.
+ #
++# LOSS: softmax cross-entropy (--loss ce), NOT the sigmoid+BCE used in
++# v6-v10. Amended 2026-08-13 on the evidence of the loss smoke test; the
++# full reasoning and the honest account of how the decision rule was
++# changed are in AMENDMENT_2026-08-13_loss.md. Short version: under BCE,
++# M2 ran the full 200 epochs and was still improving at the cap (best
++# epoch 198), so the cap bound the result. Under CE it early-stopped at
++# 134 having genuinely converged. A capped comparison measures convergence
++# speed at a fixed budget rather than architecture, and M1 and M2 have no
++# reason to approach their ceilings at the same rate.
++#
+ # NOTE: --max_epochs and --patience are passed explicitly, which trips the
+ # REDUCED-SCALE banner in train_gadi.py. That banner is EXPECTED here and
+ # is not an integrity failure -- v10 is a different protocol from v6-v9 by
+-# design, and its results must not be pooled with the binary grids. The
+-# integrity gate for v10 checks [PROTOCOL v10] instead; see the handover.
++# design, and its results must not be pooled with the binary grids.
++#
++# The integrity gate reads [PROTOCOL RESOLVED], which train_gadi.py prints
++# from its resolved variables. It replaces the hardcoded "[PROTOCOL v10]"
++# echo that used to live in this file: that echo printed the same text
++# whether or not those were the values Python actually used, so it was an
++# assertion rather than a readback and could not fail.
+ # ═══════════════════════════════════════════════════════════════════════
+ 
+ set -e
+@@ -57,13 +72,25 @@
+ conda activate qcqcnn
+ export PYTHONPATH=""
+ 
++# Must be set BEFORE the process creates its cuBLAS handle. train_gadi.py
++# also sets it via os.environ.setdefault, but that runs after torch is
++# imported, which PyTorch documents as too late.
++export CUBLAS_WORKSPACE_CONFIG=:4096:8
++
+ CLASSES="0,1,2,3,4,5,6,7,8,9"
+ 
+ echo "=== Job start: $(date) ==="
+-echo "MODEL=$MODEL DATASET=mnist SEED=$SEED CLASSES=$CLASSES [v10 10-class]"
+-echo "[PROTOCOL v10] 5000/1250/2000, 200 epochs, patience 20, n_obs=3, deterministic, predictions saved"
++echo "MODEL=$MODEL DATASET=mnist SEED=$SEED CONT=$CONT CLASSES=$CLASSES [v10 10-class]"
+ 
+-python scripts/preflight_data.py --data_root ./data --classes "$CLASSES" \
++# Step 4 of the preflight was a v7 leftover: it hardcoded Fashion-MNIST,
++# required exactly two distinct classes, and checked per-class counts
++# against the binary protocol. Every 10-class call failed with "invalid
++# class pair", and because this call is guarded by `|| exit 1` it would
++# have killed all 20 grid jobs before a single epoch ran. Fixed 2026-08-13.
++# The split sizes are passed so the preflight checks the SAME requirement
++# training will impose, rather than a different hardcoded one.
++python scripts/preflight_data.py --data_root ./data --dataset mnist \
++    --classes "$CLASSES" --n_train 5000 --n_val 1250 --n_test 2000 \
+     || { echo "FATAL: data preflight failed -- not training"; exit 1; }
+ 
+ nvidia-smi --query-gpu=name,memory.total --format=csv
+@@ -81,6 +108,7 @@
+     --noise_alpha 0.0 \
+     --n_obs 3 \
+     --head_variant linear \
++    --loss ce \
+     --deterministic \
+     --save_predictions \
+     --n_test 2000 \
+@@ -96,9 +124,23 @@
+ kill $NVSMI_PID 2>/dev/null || true
+ 
+ if [ $RC -eq 99 ]; then
+-    echo "Time budget reached -- submitting continuation link."
++    # CONTINUATION CAP. The original loop had no counter: if 200 epochs
++    # never fit the time budget, every job requeues itself indefinitely.
++    # The loss smoke measured 6.0 s/epoch (~20 min per job), so this should
++    # never fire -- which is exactly why an unbounded loop would go
++    # unnoticed until it had burned a lot of SU.
++    if [ "$CONT" -ge 3 ]; then
++        echo "=== FATAL: hit the time budget $CONT times. NOT resubmitting. ==="
++        echo "Something is badly wrong with epoch timing -- the smoke run"
++        echo "measured 6.0 s/epoch. Investigate before spending more SU."
++        echo "=== Job end: $(date) rc=99 ==="
++        exit 1
++    fi
++    echo "Time budget reached -- submitting continuation $((CONT+1))/3."
++    echo "NOTE: a resumed run reshuffles and is NOT bit-reproducible, so"
++    echo "--deterministic no longer holds for this config. Flag it."
+     cd "$PBS_O_WORKDIR"
+-    qsub -v MODEL=$MODEL,SEED=$SEED run10_mnist10_grid.pbs
++    qsub -v MODEL=$MODEL,SEED=$SEED,CONT=$((CONT+1)) run10_mnist10_grid.pbs
+     exit 0
+ fi
+ 

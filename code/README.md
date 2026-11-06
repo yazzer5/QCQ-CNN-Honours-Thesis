@@ -60,9 +60,30 @@ function amended from BCE to cross-entropy before the grid ran
 (`docs/AMENDMENT_2026-08-13_loss.md`). Raw per-run result JSONs and job logs
 are now in the repo. See `docs/CHANGELOG_v10.md` and `logs/MNIST_LOG.md` §4b.
 
+## v1_v4_replication and v3_v4_first_grid
+v1–v2: the local pilot and full-scale Gadi replication of Long et al.
+(`train_replication.py`, `qcq_cnn_mnist3_5.ipynb`), and the front-end circuit screen
+(`m2_circuit_selection.ipynb`; Circuit 4 vs Circuit 6, five seeds). v3–v4: the first
+four-model grid at batch size 1 with CPU-simulated circuits. Every trainable-front-end
+job hit its 12-hour walltime before warm-up ended; that, and the idle GPU under
+PennyLane, led to the exact batched simulator in v5. Checkpoints are not committed.
+
+## v11_brain_tumor
+Brain-tumour MRI (Nickparvar), the H4 real-data test. `code/build_mri_cache.py` builds
+the cached tensors; `code/preflight_mri.py` includes the leakage audit. Env snapshots
+in `env/`.
+
+## v12_class_count
+Class count K = 3, 4, 5 on two digit subsets, ten seeds (seed fix included). Applied
+on Gadi by `setup_v12.sh`; see `docs/PREREGISTRATION_v12.md`.
+
+## v13_readout_width
+QNN readout width w = 3, 6, 15 (`patch_v13_readout.py`); see
+`docs/PREREGISTRATION_v13.md`.
+
 ## v13_5_m5
 v13.5: adds **M5 = M3 with the quantum front-end frozen** to the v13 code
-(v12 seed fix + v13 readout-width patch, neither of which is in this repo yet). Applied
+(v12 seed fix + v13 readout-width patch, now in `v12_class_count/` and `v13_readout_width/`). Applied
 on Gadi by `setup_v135.sh` → `patch_v135_m5.py`, which wraps `build_model` /
 `expected_params` so M1–M4 call the originals unchanged, adds M5 to `--model`, adds M5
 to the warmup rule (`needs_warmup`, amendment A1) and logs the resolved warmup per run.
@@ -70,6 +91,12 @@ Every M5 run prints a bit-exact front-end check at exit. `scripts/verify_v135_m5
 proves M1–M4 bit-identical to the pre-patch file at all 8 (K, width) cells. PBS:
 smoke → gate (`check_v135.sh`) → grid → gate; 1 h walltime (A2); the `MODEL` clash fixed
 as `GRID_MODEL` (defect D1). See `docs/PREREGISTRATION_v13_5.md`.
+
+## v16a_closed_form_head, v16b_redesigned_head, v16bx_redesign_controls
+v16a replaces the QNN head with its exact classical closed form (`closed_form_zz_v16.py`)
+and dumps the head input z. v16b tests a redesigned head (`bfr_head_v16b.py`); v16b-ext
+adds the controls (`bfr_ext_v16b.py`). Each folder carries the patched trainer it ran
+with. See the matching `docs/PREREGISTRATION_*` and each folder's README.
 
 ## diagnostics/smoke10_mnist
 10-class MNIST across all four models, at two QNN readout widths. Established

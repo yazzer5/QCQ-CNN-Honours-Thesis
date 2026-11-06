@@ -1,0 +1,147 @@
+  PASS  v16a patch marker present
+  PASS  v16a inactive in this process (no flag)
+  PASS  v15 noise inactive in this process (no V15_ALPHA)
+
+==============================================================================
+1. M1-M5 UNCHANGED vs pre-patch train_gadi.py (no v16 flag), w15, bit-exact
+==============================================================================
+[VERIFIED] M1 params: front=0 backbone=1464 back_end=216 total=1680 (expected 1680) OK
+[VERIFIED] M1 params: front=0 backbone=1464 back_end=216 total=1680 (expected 1680) OK
+  PASS  K=5 M1: init, output and gradients identical
+  PASS  K=5 M1: expected_params unchanged   1680
+[VERIFIED] M2 params: front=6 backbone=1464 back_end=216 total=1686 (expected 1686) OK
+[VERIFIED] M2 params: front=6 backbone=1464 back_end=216 total=1686 (expected 1686) OK
+  PASS  K=5 M2: init, output and gradients identical
+  PASS  K=5 M2: expected_params unchanged   1686
+[VERIFIED] M3 params: front=6 backbone=1464 back_end=255 total=1725 (expected 1725) OK
+[VERIFIED] M3 params: front=6 backbone=1464 back_end=255 total=1725 (expected 1725) OK
+  PASS  K=5 M3: init, output and gradients identical
+  PASS  K=5 M3: expected_params unchanged   1725
+[VERIFIED] M4 params: front=0 backbone=1464 back_end=255 total=1719 (expected 1719) OK
+[VERIFIED] M4 params: front=0 backbone=1464 back_end=255 total=1719 (expected 1719) OK
+  PASS  K=5 M4: init, output and gradients identical
+  PASS  K=5 M4: expected_params unchanged   1719
+[VERIFIED] M3 params: front=6 backbone=1464 back_end=255 total=1725 (expected 1725) OK
+[V135] M5 = M3 with front-end frozen: 6 front-end params requires_grad=False (TrainableQuanvFrontEndTorch)
+[VERIFIED] M3 params: front=6 backbone=1464 back_end=255 total=1725 (expected 1725) OK
+[V135] M5 = M3 with front-end frozen: 6 front-end params requires_grad=False (TrainableQuanvFrontEndTorch)
+  PASS  K=5 M5: init, output and gradients identical
+  PASS  K=5 M5: expected_params unchanged   1725
+[VERIFIED] M1 params: front=0 backbone=1464 back_end=296 total=1760 (expected 1760) OK
+[VERIFIED] M1 params: front=0 backbone=1464 back_end=296 total=1760 (expected 1760) OK
+  PASS  K=10 M1: init, output and gradients identical
+  PASS  K=10 M1: expected_params unchanged   1760
+[VERIFIED] M2 params: front=6 backbone=1464 back_end=296 total=1766 (expected 1766) OK
+[VERIFIED] M2 params: front=6 backbone=1464 back_end=296 total=1766 (expected 1766) OK
+  PASS  K=10 M2: init, output and gradients identical
+  PASS  K=10 M2: expected_params unchanged   1766
+[VERIFIED] M3 params: front=6 backbone=1464 back_end=335 total=1805 (expected 1805) OK
+[VERIFIED] M3 params: front=6 backbone=1464 back_end=335 total=1805 (expected 1805) OK
+  PASS  K=10 M3: init, output and gradients identical
+  PASS  K=10 M3: expected_params unchanged   1805
+[VERIFIED] M4 params: front=0 backbone=1464 back_end=335 total=1799 (expected 1799) OK
+[VERIFIED] M4 params: front=0 backbone=1464 back_end=335 total=1799 (expected 1799) OK
+  PASS  K=10 M4: init, output and gradients identical
+  PASS  K=10 M4: expected_params unchanged   1799
+[VERIFIED] M3 params: front=6 backbone=1464 back_end=335 total=1805 (expected 1805) OK
+[V135] M5 = M3 with front-end frozen: 6 front-end params requires_grad=False (TrainableQuanvFrontEndTorch)
+[VERIFIED] M3 params: front=6 backbone=1464 back_end=335 total=1805 (expected 1805) OK
+[V135] M5 = M3 with front-end frozen: 6 front-end params requires_grad=False (TrainableQuanvFrontEndTorch)
+  PASS  K=10 M5: init, output and gradients identical
+  PASS  K=10 M5: expected_params unchanged   1805
+
+==============================================================================
+2. THE CIRCUIT: real qnn_torch.QNNBackendTorch vs the closed form (float64)
+==============================================================================
+  PASS  12 closed-form features are linearly independent (rank 12 after centring)
+[VERIFIED] M2 params: front=6 backbone=1464 back_end=216 total=1686 (expected 1686) OK
+  PASS  QNNBackendTorch has exactly one 6-element parameter   [(6,)]
+  PASS  [seed-42 init of M2] module returns 15 columns   (4003, 15)
+  PASS  [random draw 0] module returns 15 columns   (4003, 15)
+  PASS  [random draw 1] module returns 15 columns   (4003, 15)
+  PASS  [random draw 2] module returns 15 columns   (4003, 15)
+  PASS  [random draw 3] module returns 15 columns   (4003, 15)
+  PASS  [random draw 4] module returns 15 columns   (4003, 15)
+  PASS  [random draw 5] module returns 15 columns   (4003, 15)
+  PASS  2a. every module column equals one Pauli of the reps=1 reference (bijection)   max|d|=1.78e-15  columns=ZI,IZ,ZZ,XI,IX,XX,YI,IY,YY,XY,YX,XZ,ZX,YZ,ZY
+  PASS  2a. ZZFeatureMap reps=2 does NOT reproduce the module (so reps=1 is the convention)   best reps=2 column distance 3.70e-01
+  (Qiskit cross-check skipped: ImportError: Qiskit is installed in an invalid environment that has both Qiskit >=1.0 and an ; the numpy reference stands)
+  PASS  2b. SPAN CHECK: all 15 Paulis = linear combination of the 12 features + constant, residual <= 1e-6   max residual 2.58e-14 over 7 parameter draws x 4003 z
+  PASS  2c. converse: all 12 features = linear combination of the 15 Paulis, residual <= 1e-6   max residual 3.24e-14
+  features: cos_d01, cos_d02, cos_d03, cos_d12, cos_d13, cos_d23, sin_d01, sin_d02, sin_d03, sin_d12, sin_d13, sin_d23
+  phase differences: d01=2z0+zeta d02=2z1+zeta d03=2z0+2z1 d12=2z1-2z0 d13=2z1-zeta d23=2z0-zeta, zeta=2(pi-z0)(pi-z1)
+
+==============================================================================
+3. M2c SURGERY on the real M2
+==============================================================================
+[VERIFIED] M2 params: front=6 backbone=1464 back_end=216 total=1686 (expected 1686) OK
+[VERIFIED] M2 params: front=6 backbone=1464 back_end=216 total=1686 (expected 1686) OK
+[V16] HEAD m2c installed model=M2 seed=42 qnn=back_end.qnn readout=back_end.fc3 z=back_end.fc2 wiring=identity params_M2=1686 params_M2c=1665 expected_M2c=1665 VERIFIED
+  PASS  K=5: surgery done (one QNN, one Linear(15->5) reading it directly, fc2 -> QNN identity)   qnn=back_end.qnn readout=back_end.fc3 z=back_end.fc2
+  PASS  K=5: parameter counts M2=1686 (table 1686) -> M2c=1665 (table 1665)
+  PASS  K=5: every RNG state after building M2c == after building M2
+  PASS  K=5: front-end, backbone and fc2 identical to M2 at the same seed
+  PASS  K=5: the QNN module is gone, ZZTrig12 is in its place, 0 parameters
+  PASS  K=5: shim for train_model's qnn_weight_drift diagnostic: .weight is a constant 6-element BUFFER, not a parameter, not in state_dict
+  PASS  K=5: expected_params(M2) while the head is active = 1665 (M2c); other models unchanged
+  PASS  K=5: M2c forward (B, 5) and gradients reach the Circuit-4 front-end
+  PASS  K=5: FUNCTION CLASS: M2c with Linear = W_fc3 . C reproduces M2's logits (float32)   max|d logits|=3.87e-07
+[VERIFIED] M2 params: front=6 backbone=1464 back_end=296 total=1766 (expected 1766) OK
+[VERIFIED] M2 params: front=6 backbone=1464 back_end=296 total=1766 (expected 1766) OK
+[V16] HEAD m2c installed model=M2 seed=42 qnn=back_end.qnn readout=back_end.fc3 z=back_end.fc2 wiring=identity params_M2=1766 params_M2c=1730 expected_M2c=1730 VERIFIED
+  PASS  K=10: surgery done (one QNN, one Linear(15->10) reading it directly, fc2 -> QNN identity)   qnn=back_end.qnn readout=back_end.fc3 z=back_end.fc2
+  PASS  K=10: parameter counts M2=1766 (table 1766) -> M2c=1730 (table 1730)
+  PASS  K=10: every RNG state after building M2c == after building M2
+  PASS  K=10: front-end, backbone and fc2 identical to M2 at the same seed
+  PASS  K=10: the QNN module is gone, ZZTrig12 is in its place, 0 parameters
+  PASS  K=10: shim for train_model's qnn_weight_drift diagnostic: .weight is a constant 6-element BUFFER, not a parameter, not in state_dict
+  PASS  K=10: expected_params(M2) while the head is active = 1730 (M2c); other models unchanged
+  PASS  K=10: M2c forward (B, 10) and gradients reach the Circuit-4 front-end
+  PASS  K=10: FUNCTION CLASS: M2c with Linear = W_fc3 . C reproduces M2's logits (float32)   max|d logits|=3.73e-07
+[VERIFIED] M1 params: front=0 backbone=1464 back_end=216 total=1680 (expected 1680) OK
+  PASS  M1: unique Linear(-> 2) = z layer   back_end.fc2
+[VERIFIED] M2 params: front=6 backbone=1464 back_end=216 total=1686 (expected 1686) OK
+  PASS  M2: unique Linear(-> 2) = z layer   back_end.fc2
+[VERIFIED] M3 params: front=6 backbone=1464 back_end=255 total=1725 (expected 1725) OK
+  PASS  M3: unique Linear(-> 2) = z layer   back_end.fc2
+[VERIFIED] M4 params: front=0 backbone=1464 back_end=255 total=1719 (expected 1719) OK
+  PASS  M4: unique Linear(-> 2) = z layer   back_end.fc2
+[VERIFIED] M3 params: front=6 backbone=1464 back_end=255 total=1725 (expected 1725) OK
+[V135] M5 = M3 with front-end frozen: 6 front-end params requires_grad=False (TrainableQuanvFrontEndTorch)
+  PASS  M5: unique Linear(-> 2) = z layer   back_end.fc2
+[VERIFIED] M2 params: front=6 backbone=1464 back_end=216 total=1686 (expected 1686) OK
+  PASS  M2: z (fc2 output) is exactly the QNN head's input
+
+==============================================================================
+4. DRY RUNS (K=5 A, 50/class, 2 epochs, CPU, real data)
+==============================================================================
+  PASS  M3 dry run, plain and --save_z: rc=0
+  PASS  M3: --save_z is invisible to training (test_acc, best/stop epoch, every prediction identical)   0.306 vs 0.306
+  PASS  M3: no v16 output without a flag
+  PASS  M3 --save_z: SAVEZ and RUN self-check MATCH
+      z range dim0 [0.40, 0.67] dim1 [-0.83, -0.53]   (2 epochs; not a result)
+  PASS  M3 --save_z: z file (1000, 2), finite, sidecar hash matches
+  PASS  M2 dry run, plain and --save_z: rc=0
+  PASS  M2: --save_z is invisible to training (test_acc, best/stop epoch, every prediction identical)   0.299 vs 0.299
+  PASS  M2: no v16 output without a flag
+  PASS  M2 --save_z: SAVEZ and RUN self-check MATCH
+      z range dim0 [0.03, 0.26] dim1 [-0.53, -0.18]   (2 epochs; not a result)
+  PASS  M2 --save_z: z file (1000, 2), finite, sidecar hash matches
+  PASS  M2c dry run (--model M2 --v16_head m2c): rc=0
+  PASS  M2c: HEAD line VERIFIED with 1686 -> 1665
+  PASS  M2c: the trainer's own parameter check passes
+  PASS  M2c: warmup is M2's (30 epochs)
+  PASS  M2c: RUN self-check MATCH
+  PASS  M2c: train_model's qnn_weight_drift diagnostic runs and reports 0 (no circuit)   2 epoch line(s): ['0.000e+00']
+  PASS  M2c: same train/val/test images as M2 at the same seed
+      | [VERIFIED] M2 params: front=6 backbone=1464 back_end=216 total=1686 (expected 1686) OK
+      | [V16] HEAD m2c installed model=M2 seed=42 qnn=back_end.qnn readout=back_end.fc3 z=back_end.fc2 wiring=identity params_M2=1686 params_M2c=1665 expected_M2c=1665 VERIFIED
+      | [V16] RUN model=M2c arch=M2 head=m2c seed=42 params=1665 source=memory encoding=index selfcheck=MATCH (acc 0.2690 vs result JSON 0.269)
+
+==============================================================================
+ALL CHECKS PASSED
+[V135] M5 front-end after run: UNCHANGED OK
+[V135] M5 front-end after run: UNCHANGED OK
+[V135] M5 front-end after run: UNCHANGED OK
+[V135] M5 front-end after run: UNCHANGED OK
+[V135] M5 front-end after run: UNCHANGED OK

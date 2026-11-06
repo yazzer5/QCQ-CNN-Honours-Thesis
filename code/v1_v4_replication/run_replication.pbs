@@ -1,0 +1,47 @@
+#!/bin/bash
+#PBS -N qcq_replication
+#PBS -P wa66
+#PBS -q gpuvolta
+#PBS -l ncpus=12,ngpus=1,mem=48GB,walltime=08:00:00
+#PBS -l storage=gdata/wa66+scratch/wa66
+#PBS -l jobfs=10GB
+#PBS -j oe
+#PBS -M yh2481@unsw.edu.au
+#PBS -m ae
+
+# -------------------------------------------------------
+# QCQ-CNN Faithful Replication Job
+# Estimated runtime: 4-8 hours (quanvolutional encoding
+# of 5000 samples is the bottleneck)
+# -------------------------------------------------------
+
+echo "=========================================="
+echo "Job ID      : $PBS_JOBID"
+echo "Job Name    : $PBS_JOBNAME"
+echo "Node        : $(hostname)"
+echo "Start time  : $(date)"
+echo "=========================================="
+
+# --- Environment ---
+source /g/data/wa66/yh2481/miniconda3/etc/profile.d/conda.sh
+conda activate qcqcnn
+export PYTHONPATH=""
+
+# --- Move to working directory ---
+cd /g/data/wa66/yh2481/
+
+# --- Verify GPU ---
+echo ""
+echo "--- GPU Check ---"
+nvidia-smi
+python -c "import torch; print('CUDA:', torch.cuda.is_available(), '| GPU:', torch.cuda.get_device_name(0))"
+
+# --- Run ---
+echo ""
+echo "--- Starting training ---"
+python train_replication.py
+
+echo ""
+echo "=========================================="
+echo "End time : $(date)"
+echo "=========================================="

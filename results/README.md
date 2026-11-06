@@ -11,7 +11,15 @@ accuracy, the parameter count, and the full protocol under which it ran.
 | `results_v8_fashion_c26/` | 20 | Fashion-MNIST 2,6, 4 models × 5 seeds — corrected gap@best metric |
 | `results_v9_fashion_c24/` | 20 | Fashion-MNIST 2,4, 4 models × 5 seeds — closes the arm (a) sequence |
 | `results_v10_mnist10/` | 20 | 10-class MNIST — raw JSONs + job logs now in repo; **reduced-scale/feasibility, not locked full protocol** |
+| `results_replication/` | — | v1–v2 replication of Long et al.: accuracy table and figures |
+| `results_v3_grid/` | 17 | First four-model grid at batch size 1 (MNIST, Fashion, MRI); partial — jobs hit walltime |
+| `results_v11_mri/` | 20 | Brain-tumour MRI, 4 models × 5 seeds |
+| `results_v12/` | 240 | Class count K = 3/4/5, two digit subsets, 4 models × 10 seeds |
+| `results_v13/` | 142 | Readout width w = 6/15 at K = 5 and 10, plus bit-exact reproductions |
 | `results_v135/` | 131 | **v13.5**: M5 (M3 with frozen front-end), MNIST K=3/4/5/10 × widths 3/6/15, 10 seeds + 1 M3 reproduction — own README |
+| `results_v16a/` | 147 | Closed-form classical replica of the QNN head; `z_*` cells hold the head-input dumps (`.npz`); `calib/` the Aer reference |
+| `results_v16b/` | 121 | Redesigned quantum head (BFR) against M2–M4 |
+| `results_v16bx/` | 42 | Controls for the redesign (M4 trim, BFR with ZZ restored) |
 | `results_reps_fashion_mnist_c06/` | 20 | ansatz depth ablation, M1/M2 × reps{1,2} × 5 seeds |
 | `results_smoke10_mnist10/` | 6 | 10-class diagnostic — **not iso-parametric** |
 | `results_v5_scale1000/`, `results_v5_scale3000/`, `results_v5_smoke/` | 12 | reduced-scale validation |
