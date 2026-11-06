@@ -1,0 +1,80 @@
+#!/bin/bash
+# ═══════════════════════════════════════════════════════════════════════
+# v15: one job. Protocol = v13/v13.5/v14 at N=500, w15 (CE, linear head,
+# deterministic, val 125/class, test 200/class, 200 epochs max, patience 20,
+# warmup 30 for M1/M2/M3/M5). The ONLY change: V15_ALPHA (front-end noise, set
+# through the environment; --noise_alpha stays 0.0, the back-end is noiseless).
+#   qsub -v K,TAG,A,MODEL,SEED,OUT,CONT   (submit scripts set the name)
+# ═══════════════════════════════════════════════════════════════════════
+#PBS -P wa66
+#PBS -q gpuvolta
+#PBS -l ncpus=12
+#PBS -l ngpus=1
+#PBS -l mem=32GB
+#PBS -l walltime=01:00:00
+#PBS -l storage=gdata/wa66
+#PBS -l wd
+#PBS -N v15
+#PBS -j oe
+
+set -e
+: "${K:?}" "${TAG:?}" "${A:?}" "${MODEL:?}" "${SEED:?}" "${OUT:?}"
+CONT="${CONT:-0}"
+
+cd "$PBS_O_WORKDIR"
+source ./config15.sh
+CLASSES=$(subset_classes "$K" "$TAG") || { echo "FATAL: unknown subset K=$K TAG=$TAG"; exit 1; }
+N_TRAIN=$((N_PER_CLASS * K)); N_VAL=$((PER_CLASS_VAL * K)); N_TEST=$((PER_CLASS_TEST * K))
+
+cd "$PBS_O_WORKDIR/.."
+REPO=$(pwd)
+ls -l train_gadi.py quanv_torch.py qnn_torch.py quanv_noise_v15.py "$CALIB_REL" || { echo "FATAL: repo root not found"; exit 1; }
+grep -q "V13_READOUT_PATCH" qnn_torch.py || { echo "FATAL: qnn_torch.py is not the v13-patched file"; exit 1; }
+grep -q "V135_M5_PATCH" train_gadi.py    || { echo "FATAL: train_gadi.py lacks the v13.5 M5 patch"; exit 1; }
+grep -q "V14_SPLIT_AUDIT" train_gadi.py  || { echo "FATAL: train_gadi.py lacks the v14 split audit"; exit 1; }
+grep -q "V15_FE_NOISE" train_gadi.py     || { echo "FATAL: train_gadi.py is not the v15-patched file"; exit 1; }
+grep -q "$CALIB_SHA" "$CALIB_REL"        || { echo "FATAL: calibration file is not the pre-registered one"; exit 1; }
+unset V14_NO_AUDIT V14_SPLIT_ONLY V14_SPLIT_DUMP
+
+module load cuda/11.7.0
+source /g/data/wa66/yh2481/miniconda3/etc/profile.d/conda.sh
+conda activate qcqcnn
+export PYTHONPATH=""
+export CUBLAS_WORKSPACE_CONFIG=:4096:8      # before torch makes its cuBLAS handle (v10 D3)
+export V15_ALPHA="$A" V15_CALIB="$REPO/$CALIB_REL" V15_EVAL_ALPHAS="$EVAL_ALPHAS"
+
+echo "=== Job start: $(date) ==="
+echo "[V15] K=$K TAG=$TAG ALPHA=$A CLASSES=$CLASSES MODEL=$MODEL SEED=$SEED OUT=$OUT CONT=$CONT"
+echo "[V15] split train=$N_TRAIN val=$N_VAL test=$N_TEST budget=${BUDGET}h eval_alphas=[$EVAL_ALPHAS] calib=${CALIB_SHA:0:12}"
+
+python scripts/preflight_data.py --data_root ./data --dataset mnist \
+    --classes "$CLASSES" --n_train $N_TRAIN --n_val $N_VAL --n_test $N_TEST \
+    || { echo "FATAL: data preflight failed -- not training"; exit 1; }
+
+set +e
+python train_gadi.py \
+    --model "$MODEL" --dataset mnist --classes "$CLASSES" --seed "$SEED" \
+    --noise_alpha 0.0 --n_obs "$W_OBS" --head_variant linear --loss ce \
+    --deterministic --save_predictions \
+    --n_train $N_TRAIN --n_val $N_VAL --n_test $N_TEST \
+    --max_epochs $MAX_EPOCHS --patience $PATIENCE \
+    --output_dir "./$OUT" --data_root ./data \
+    --checkpoint_dir "./ckpt_${OUT#results_}_${MODEL}_s${SEED}" \
+    --time_budget_hours "$BUDGET"
+RC=$?
+set -e
+
+if [ $RC -eq 99 ]; then
+  if [ "$CONT" -ge 3 ]; then echo "=== FATAL: time budget hit $CONT times ==="; echo "=== Job end: $(date) rc=99 ==="; exit 1; fi
+  echo "Time budget reached -- continuation $((CONT+1))/3. NOT bit-reproducible: flag it."
+  cd "$PBS_O_WORKDIR"
+  qsub -N "${PBS_JOBNAME}" -v K=$K,TAG=$TAG,A=$A,MODEL=$MODEL,SEED=$SEED,OUT=$OUT,CONT=$((CONT+1)) run15.pbs
+  echo "=== Job end: $(date) rc=99 (continued) ==="
+  exit 0
+fi
+if [ $RC -eq 0 ] && grep -q '"selfcheck": "MATCH"' "./$OUT/v15_xeval_${MODEL}_seed${SEED}.json" 2>/dev/null; then
+  rm -rf "./ckpt_${OUT#results_}_${MODEL}_s${SEED}"
+  echo "[V15] checkpoint dir removed after a MATCH cross-eval (inode budget, amendment A1)"
+fi
+echo "=== Job end: $(date) rc=$RC ==="
+exit $RC

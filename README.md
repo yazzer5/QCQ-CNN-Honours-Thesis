@@ -78,6 +78,16 @@ ansatz depth, where **Long's paper and their own code contradict each other**
 (6 vs 4 variational parameters). This repository follows the paper; the
 difference was measured across 5 seeds and found immaterial.
 
+**5. Under IBM-calibrated hardware noise, the trained quantum front-end still gives
+no advantage, and noise costs nothing once the model trains under it (v15).**
+With ibm_brisbane-calibrated noise on the front-end (0.5–4× the device), M3's accuracy
+at device noise is equivalent to its noiseless accuracy within ±1 pp (TOST, K=5 and
+K=10), and M3 − M4 is not detected at any noise level. Models trained without noise
+and then run on noisy hardware are a different story. There, the QNN head is the
+fragile part (exploratory): with the same front-end and the same noise, it loses
+7.5–13.8 pp at 4× device noise against 0.3–3.2 pp for the classical head. See
+`docs/V15_RESULTS.md` and `logs/MNIST_LOG.md` §11.
+
 ## Repository layout
 
 ```
@@ -89,6 +99,8 @@ code/
   v9_fashion/        Fashion-MNIST 2,4; identical to v8 except CODE_VERSION tag
   v13_5_m5/         v13.5: M5 (frozen-front-end control) patch, verify, PBS, analysis
   v14_lowdata/      v14: low data (50-500/class), M1-M5 at w15; split audit, PBS, analysis
+  v15_noise/        v15: IBM-calibrated front-end noise (ibm_brisbane), Aer-verified
+                     noise model, patch, verify, PBS, gate, analysis
   v10_mnist10/       10-class MNIST grid — **reduced-scale/feasibility run,
                      not the locked full protocol, see caveat below**;
                      3-observable readout, re-padded iso-parametric budget,
@@ -106,6 +118,8 @@ results/
                                       (raw JSONs + job logs now in repo)
   results_v135/                     131 runs — v13.5 M5 control, K=3/4/5/10 (own README)
   results_v14/                      512 runs — v14 low data, M1-M5 at w15, K=5/10 (own README)
+  results_v15/                      630 runs — v15 front-end noise, K=5/10, alpha 0–4,
+                                      cross-evaluated to alpha 16 (own README)
   results_reps_fashion_mnist_c06/    20 runs — ansatz depth ablation
   results_smoke10_mnist10/            6 runs — 10-class diagnostic
   results_v5_*/                      reduced-scale validation
@@ -178,10 +192,11 @@ Hardware used: NCI Gadi, `gpuvolta` queue (Tesla V100-SXM2-32GB), project
 
 ## Status
 
-> **Repo gap:** v11 (MRI), v12 (class-count sweep), v13 (readout width) and v15 were
-> run after 2026-08-14 and are not yet in this repo. v13.5 (2026-10-14) and v14
-> (2026-10-17) are; their comparators come from v12/v13 (see `results/results_v135/README.md`
-> and `results/results_v14/README.md`).
+> **Repo gap:** v11 (MRI), v12 (class-count sweep) and v13 (readout width) were run
+> after 2026-08-14 and are not yet in this repo. v13.5 (2026-10-14), v14 (2026-10-17)
+> and v15 (2026-10-18) are; their comparators come from v12/v13 (see
+> `results/results_v135/README.md`, `results/results_v14/README.md`,
+> `results/results_v15/README.md`).
 >
 > **v14 headline:** no sample-efficiency advantage from the quantum front-end down to
 > 50 images per class (M3 − M4 never detected, bounded at about +1 pp). The quantum head's
