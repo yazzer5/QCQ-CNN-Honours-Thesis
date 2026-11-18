@@ -1,0 +1,151 @@
+-rw-r--r-- 1 yh2481 wa66  10963 Oct  4 13:53 qnn_torch.py
+-rw-r--r-- 1 yh2481 wa66  11494 Aug 13 15:12 quanv_torch.py
+-rw-r--r-- 1 yh2481 wa66 113748 Nov  9 13:24 train_gadi.py
+=== Job start: Mon Nov  9 14:52:06 AEDT 2026 ===
+[V158] K=5 TAG=B SIGMA=0 CLASSES=0,2,6,8,9 MODEL=M6 SEED=45 OUT=results_v158_k5_B_s0 CONT=0
+[V158] split train=2500 val=625 test=1000 budget=0.85h eval_sigmas=[0 0.1 0.2 0.3 0.5 0.7 1.0] eval_sp=[0.05 0.1 0.2]
+Data root: /g/data/wa66/yh2481/qcq_cnn_v14/data
+
+[1/4] Verifying staged archives
+      ok       MNIST/raw/train-images-idx3-ubyte.gz  (9,912,422 bytes)
+      ok       MNIST/raw/train-labels-idx1-ubyte.gz  (28,881 bytes)
+      ok       MNIST/raw/t10k-images-idx3-ubyte.gz  (1,648,877 bytes)
+      ok       MNIST/raw/t10k-labels-idx1-ubyte.gz  (4,542 bytes)
+      ok       FashionMNIST/raw/train-images-idx3-ubyte.gz  (26,421,880 bytes)
+      ok       FashionMNIST/raw/train-labels-idx1-ubyte.gz  (29,515 bytes)
+      ok       FashionMNIST/raw/t10k-images-idx3-ubyte.gz  (4,422,102 bytes)
+      ok       FashionMNIST/raw/t10k-labels-idx1-ubyte.gz  (5,148 bytes)
+
+[2/4] Extracting archives (so torchvision never enters download())
+      present  train-images-idx3-ubyte
+      present  train-labels-idx1-ubyte
+      present  t10k-images-idx3-ubyte
+      present  t10k-labels-idx1-ubyte
+      present  train-images-idx3-ubyte
+      present  train-labels-idx1-ubyte
+      present  t10k-images-idx3-ubyte
+      present  t10k-labels-idx1-ubyte
+
+[3/4] Opening datasets with download=False (offline proof)
+      MNIST         train=60,000  test=10,000
+      FashionMNIST  train=60,000  test=10,000
+
+[4/4] Checking MNIST classes 0,2,6,8,9
+      protocol: 2500+625 train+val and 1000 test across 5 classes -> need 625 train and 200 test PER CLASS
+      class 0 (digit 0     ) train=5,923  test=980
+      class 2 (digit 2     ) train=5,958  test=1,032
+      class 6 (digit 6     ) train=5,918  test=958
+      class 8 (digit 8     ) train=5,851  test=974
+      class 9 (digit 9     ) train=5,949  test=1,009
+
+  PREFLIGHT PASSED -- MNIST 5-class (0, 2, 6, 8, 9) is ready. No network required.
+
+[BACKEND] torch-native quantum front-end (exact batched tensor algebra, autograd gradients == parameter-shift).
+[MULTICLASS] n_classes=5 n_obs=15 head_variant=linear
+[LOSS] ce (softmax cross-entropy, Long et al. eq 21 -- DEVIATION from v6-v10, which used bce)
+[DETERMINISM] torch deterministic algorithms ENABLED. Two runs with the same seed should now agree exactly; if they do not, something else is injecting nondeterminism and must be found before the grid is trusted.
+[PROTOCOL] REDUCED-SCALE / FEASIBILITY RUN -- not the locked full protocol. N_TRAIN=2500 N_VAL=625 N_TEST=1000 MAX_EPOCHS=200 PATIENCE=20 MIN_EPOCHS_QUANTUM_FRONTEND=30. Label any results from this run accordingly -- do not mix with full-scale (5000/1250/1000, 100 max epochs) results.
+[PROTOCOL RESOLVED] n_train=2500 n_val=625 n_test=1000 max_epochs=200 patience=20 min_epochs_quantum=30 batch_size=32 lr=0.001 weight_decay=0.0001 dropout=0.0 n_classes=5 n_obs=15 head_variant=linear loss=ce qnn_backend=torch deterministic=True save_predictions=True classes=[0, 2, 6, 8, 9]
+Device: cuda
+[CODE VERSION] v10
+Run: model=M6 dataset=mnist seed=45 noise_alpha=0.0 batch_size=32 lr=0.001 weight_decay=0.0001 dropout=0.0
+[CLASS PAIR] trainer received classes=[0, 2, 6, 8, 9]
+[VERIFIED] M6 params: front=0 backbone=1464 back_end=255 total=1719 (expected 1719) OK
+[V158] M6 front-end = Circuit 4 at w=0 (cos(pi x) per pixel): max|diff|=2.38e-07 PASS
+[V158] M6 = fixed cos(pi x) front-end, 0 params, classical head, warmup as M4
+[DEVICE] whole model on cuda (front-end included -- v5 torch-native quantum simulation)
+[DATA] mnist: 5 classes, pool=3125 test=1000 (625 train+val and 200 test per class)
+[V14] SPLIT train n=2500 labels=0,1,2,3,4 per_class=490,503,496,512,499 min=490 max=512 hash=cca56523bb2d2910
+[V14] SPLIT val   n=625 labels=0,1,2,3,4 per_class=135,122,129,113,126 min=113 max=135 hash=177c2a5558a34c8f
+[V14] SPLIT test  n=1000 labels=0,1,2,3,4 per_class=200,200,200,200,200 min=200 max=200 hash=603b66f465296139
+[V14] SPLIT overlap train&val=0 train&test=0 val&test=0
+[V155] NOISE sigma=0 model=M6 seed=45 datasets untouched (clean, bit-exact v14)
+[V155] TESTSET sigma=0 n=1000 sha=c26a68edea258d78dbb351b7b1e261b3e4caafb0b082e5c4b62b9b6f73ccd0e9
+[V155] selfcheck global RNG (python, numpy, torch, cuda) unchanged by noise setup: PASS
+Split sizes: train=2500 val=625 test=1000
+[V135] warmup: model=M6 min_epochs=0
+[GRADCHECK] M6:
+  backbone.conv1.weight                    |grad|=8.341e-02
+  backbone.conv1.bias                      |grad|=1.274e-02
+  backbone.conv2.weight                    |grad|=1.488e-01
+  backbone.conv2.bias                      |grad|=2.962e-02
+  back_end.fc2.weight                      |grad|=1.908e-01
+  back_end.fc2.bias                        |grad|=5.896e-02
+  back_end.fc_mid.weight                   |grad|=5.646e-02
+  back_end.fc_mid.bias                     |grad|=1.451e-01
+  back_end.fc3.weight                      |grad|=4.301e-01
+  back_end.fc3.bias                        |grad|=2.393e-01
+[GRADCHECK] M6: all trainable tensors receive gradient. OK
+[OUTPUT DIVERSITY] M6: logits for 8 distinct samples (label in brackets):
+  sample 0  label=4  logits=[ 0.13942572  0.3017913   0.55289316 -0.24643803 -0.2600501 ]
+  sample 1  label=4  logits=[ 0.09376544  0.14590196  0.5276805  -0.20580447 -0.3587467 ]
+  sample 2  label=1  logits=[ 0.08957194  0.1322803   0.5252286  -0.20426074 -0.36804178]
+  sample 3  label=0  logits=[ 0.0910071   0.13251008  0.5269363  -0.19084549 -0.36339062]
+  sample 4  label=2  logits=[ 0.0981385   0.15709975  0.5308267  -0.19795364 -0.34805608]
+  sample 5  label=3  logits=[ 0.09278613  0.15684332  0.5243404  -0.24987555 -0.36560205]
+  sample 6  label=3  logits=[ 0.08442469  0.12440537  0.5204859  -0.23019284 -0.38238496]
+  sample 7  label=4  logits=[ 0.10594071  0.18049856  0.5357696  -0.19470686 -0.33011687]
+  per-class std across samples: [0.0173749  0.05757454 0.01011354 0.02366793 0.03834794]  (nonzero spread)
+[TRAIN/EVAL SHIFT] M6: dropout_rate=0.0
+  mean logit margin (class0-class1)  train-mode=-0.0612  eval-mode=-0.0612
+  predictions flipping between modes: 0/32
+[M6] epoch   1  train_acc=0.3172 val_acc=0.4832 (0.7s)
+[M6] epoch   2  train_acc=0.6704 val_acc=0.8128 (0.6s)
+[M6] epoch   3  train_acc=0.8876 val_acc=0.9120 (0.6s)
+[M6] epoch   4  train_acc=0.9304 val_acc=0.9392 (0.6s)
+[M6] epoch   5  train_acc=0.9472 val_acc=0.9424 (0.6s)
+[M6] epoch   6  train_acc=0.9508 val_acc=0.9488 (0.6s)
+[M6] epoch   7  train_acc=0.9620 val_acc=0.9504 (0.6s)
+[M6] epoch   8  train_acc=0.9656 val_acc=0.9440 (0.6s)
+[M6] epoch   9  train_acc=0.9652 val_acc=0.9488 (0.6s)
+[M6] epoch  10  train_acc=0.9688 val_acc=0.9520 (0.6s)
+[M6] epoch  11  train_acc=0.9744 val_acc=0.9552 (0.6s)
+[M6] epoch  12  train_acc=0.9768 val_acc=0.9536 (0.6s)
+[M6] epoch  13  train_acc=0.9800 val_acc=0.9520 (0.6s)
+[M6] epoch  14  train_acc=0.9812 val_acc=0.9552 (0.6s)
+[M6] epoch  15  train_acc=0.9860 val_acc=0.9600 (0.6s)
+[M6] epoch  16  train_acc=0.9840 val_acc=0.9472 (0.6s)
+[M6] epoch  17  train_acc=0.9852 val_acc=0.9632 (0.6s)
+[M6] epoch  18  train_acc=0.9888 val_acc=0.9520 (0.6s)
+[M6] epoch  19  train_acc=0.9896 val_acc=0.9520 (0.6s)
+[M6] epoch  20  train_acc=0.9932 val_acc=0.9552 (0.6s)
+[M6] epoch  21  train_acc=0.9928 val_acc=0.9536 (0.6s)
+[M6] epoch  22  train_acc=0.9956 val_acc=0.9584 (0.6s)
+[M6] epoch  23  train_acc=0.9964 val_acc=0.9568 (0.6s)
+[M6] epoch  24  train_acc=0.9984 val_acc=0.9536 (0.6s)
+[M6] epoch  25  train_acc=0.9940 val_acc=0.9552 (0.6s)
+[M6] epoch  26  train_acc=0.9964 val_acc=0.9520 (0.6s)
+[M6] epoch  27  train_acc=0.9984 val_acc=0.9568 (0.6s)
+[M6] epoch  28  train_acc=0.9980 val_acc=0.9568 (0.6s)
+[M6] epoch  29  train_acc=0.9960 val_acc=0.9520 (0.6s)
+[M6] epoch  30  train_acc=0.9988 val_acc=0.9568 (0.6s)
+[M6] epoch  31  train_acc=0.9988 val_acc=0.9600 (0.6s)
+[M6] epoch  32  train_acc=0.9992 val_acc=0.9568 (0.6s)
+[M6] epoch  33  train_acc=0.9996 val_acc=0.9568 (0.6s)
+[M6] epoch  34  train_acc=0.9996 val_acc=0.9536 (0.6s)
+[M6] epoch  35  train_acc=0.9992 val_acc=0.9632 (0.6s)
+[M6] epoch  36  train_acc=0.9992 val_acc=0.9536 (0.6s)
+[M6] epoch  37  train_acc=0.9992 val_acc=0.9600 (0.6s)
+[M6] early stopping at epoch 37 (best val_acc=0.9632)
+[M6] FINAL test_acc=0.9300
+[M6] GAP@BEST train_acc=0.9936 test_acc=0.9300 gap=+6.36 pp (both measured on the epoch-17 checkpoint, eval mode)
+[PREDICTIONS] saved 1000 per-image test predictions, recomputed acc=0.9300 matches reported
+Saved -> results_v158_k5_B_s0/result_M6_mnist_seed45_alpha0.0.json
+[V155] TRAIN noise draws this run: n=0 (gen_seed=None)
+[V155] XEVAL model=M6 seed=45 sigma_train=0 source=memory selfcheck=MATCH (acc at sigma_train 0.9300 vs result JSON 0.93) gauss: 0=0.9300 0.1=0.9280 0.2=0.9150 0.3=0.8860 0.5=0.7920 0.7=0.6340 1=0.5200 | sp: 0.05=0.9100 0.1=0.9060 0.2=0.8560
+[V158] checkpoint dir removed after a MATCH cross-eval (inode budget, v15 amendment A1)
+=== Job end: Mon Nov  9 14:52:48 AEDT 2026 rc=0 ===
+
+======================================================================================
+                  Resource Usage on 2026-11-09 14:52:51:
+   Job Id:             183538588.gadi-pbs
+   Project:            wa66
+   Exit Status:        0
+   Service Units:      0.53
+   NCPUs Requested:    12                  CPU Time Used: 00:00:37        
+   Memory Requested:   32.0GB                Memory Used: 3.0GB           
+   NGPUs Requested:    1                 GPU Utilisation: 3%              
+                                         GPU Memory Used: 504.0MB         
+   Walltime Requested: 01:00:00            Walltime Used: 00:00:53        
+   JobFS Requested:    100.0MB                JobFS Used: 0B              
+======================================================================================

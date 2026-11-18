@@ -123,11 +123,13 @@ and dumps the head input z. v16b tests a redesigned head (`bfr_head_v16b.py`); v
 adds the controls (`bfr_ext_v16b.py`). Each folder carries the patched trainer it ran
 with. See the matching `docs/preregistrations/PREREGISTRATION_v16*.md`, `docs/results/V16*_RESULTS.md` and each folder's README.
 
-## Not yet in the repository: v15.6, v15.7, v15.8
-The noise-geometry (v15.6), training-dynamics (v15.7) and classical cos(πx) control (v15.8)
-packages ran on Gadi from the v15.5 trainer. Their pre-registrations and results are in
-`docs/`; the code and raw results will be added under `code/v15_6_noise_geometry/`,
-`code/v15_7_bubble_tracking/`, `code/v15_8_cos_control/` and the matching `results/` folders.
+## v15_6_noise_geometry, v15_7_bubble_tracking, v15_8_cos_control
+All three patch the v15.5 trainer and reuse its stored runs as bit-exact reproductions.
+v15.6 adds a geometry pass (shift, spread, Fisher ratio, bleed per layer; `geom_v156.py`).
+v15.7 tracks the noise "bubble" during training (`track_v157.py`). v15.8 adds M6, a fixed
+cos(πx) front-end with zero parameters (`patch_v158_m6.py`). Each folder has its README,
+setup, verify (with its log), gate, PBS and analysis scripts. See
+`docs/preregistrations/PREREGISTRATION_v15_{6,7,8}.md` and `docs/results/V15_{6,7,8}_RESULTS.md`.
 
 ## diagnostics/v10_loss_smoke
 The one-seed M2 smoke test (BCE vs cross-entropy) behind the loss amendment

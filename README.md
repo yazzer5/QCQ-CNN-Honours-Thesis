@@ -115,11 +115,11 @@ DATASETS.md               how to obtain and verify the datasets
 
 ## What is and is not in the repository
 
-- **Code and raw results:** every experiment from v1 to v16b-ext. v16c was analysis
-  only (no training).
-- **v15.6, v15.7 and v15.8** (noise geometry, training dynamics, classical cos
-  control): pre-registrations and results write-ups are in `docs/`; the code
-  packages and raw result files are not yet in the repository.
+- **Code and raw results:** every training experiment from v1 to v16b-ext, including
+  v15.6–v15.8. v16c was analysis only (no training); its write-up is in `docs/`, its
+  analysis script is not yet in the repository.
+- **Circuit screen (Circuits 2/4/6) and the four-model smoke test:** the notebook is in
+  `code/v1_v4_replication/`, but its stored outputs were cleared.
 - **Not committed:** datasets (see `DATASETS.md`), model checkpoints (deleted after
   each job's self-check from v15 on), and archive tarballs.
 

@@ -23,7 +23,9 @@ accuracy, the parameter count, and the full protocol under which it ran.
 | `results_v16a/` | 147 | Closed-form classical replica of the QNN head; `z_*` cells hold the head-input dumps (`.npz`); `calib/` the Aer reference |
 | `results_v16b/` | 121 | Redesigned quantum head (BFR) against M2–M4 |
 | `results_v16bx/` | 42 | Controls for the redesign (M4 trim, BFR with ZZ restored) |
-| *(not yet added)* | 273 | v15.6 noise geometry (180), v15.7 bubble tracking (60), v15.8 cos control M6 (33); write-ups in `docs/results/` |
+| `results_v15_6/` | 180 | **v15.6**: noise geometry per layer, M3/M4/M5, both arms, K5 A/B and K10; `geom_*.npz` per run; `analysis/` |
+| `results_v15_7/` | 60 | **v15.7**: bubble radius tracked through training, M3/M4/M5, K5 A; `analysis/` |
+| `results_v15_8/` | 33 | **v15.8**: M6 fixed cos(πx) front-end (M3/M4/M5 reused from v15.5), seeds 42–46; `analysis/` |
 | `results_reps_fashion_mnist_c06/` | 20 | ansatz depth ablation, M1/M2 × reps{1,2} × 5 seeds |
 | `results_v10_loss_smoke/` | 2 | v10 loss amendment smoke test: M2 seed 42, BCE vs cross-entropy |
 | `results_smoke10_mnist10/` | 6 | 10-class diagnostic — **not iso-parametric** |
