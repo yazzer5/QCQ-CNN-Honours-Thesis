@@ -23,6 +23,7 @@ accuracy, the parameter count, and the full protocol under which it ran.
 | `results_v16a/` | 147 | Closed-form classical replica of the QNN head; `z_*` cells hold the head-input dumps (`.npz`); `calib/` the Aer reference |
 | `results_v16b/` | 121 | Redesigned quantum head (BFR) against M2–M4 |
 | `results_v16bx/` | 42 | Controls for the redesign (M4 trim, BFR with ZZ restored) |
+| *(not yet added)* | 273 | v15.6 noise geometry (180), v15.7 bubble tracking (60), v15.8 cos control M6 (33); write-ups in `docs/results/` |
 | `results_reps_fashion_mnist_c06/` | 20 | ansatz depth ablation, M1/M2 × reps{1,2} × 5 seeds |
 | `results_v10_loss_smoke/` | 2 | v10 loss amendment smoke test: M2 seed 42, BCE vs cross-entropy |
 | `results_smoke10_mnist10/` | 6 | 10-class diagnostic — **not iso-parametric** |
@@ -60,7 +61,7 @@ between 2,6 and 2,4 (0.18 pp apart in M4 accuracy, inside the ~0.8 pp
 non-determinism floor). Full synthesis in `logs/FMNIST_LOG.md` §5.7.
 
 **MNIST 10-class (v10) — reduced-scale/feasibility run, not locked full
-protocol** (`docs/AMENDMENT_2026-08-14_v10_reduced_scale.md`) — M1 70.59 ± 5.17
+protocol** (`docs/process/AMENDMENT_2026-08-14_v10_reduced_scale.md`) — M1 70.59 ± 5.17
 · M2 70.92 ± 5.40 · M3 81.96 ± 2.33 · M4 82.41 ± 1.98. M2−M1 +0.33 pp, p = 0.94,
 MDE = 16.08 pp — far underpowered. QNN-head models show 12–15 pp seed spread
 vs 5–6 pp for classical-head models; this instability, not the M2−M1 point
@@ -76,7 +77,7 @@ write-up in `logs/MNIST_LOG.md` §4b.
 ≈ +3 (K=10), detected after Holm at K=10 w6/w15. An untrained front-end is slightly
 worse than none (M5 − M4 = −0.5 → −2.6 pp). Exploratory: one bad random
 initialisation (seed 46) drives most of the K ≤ 5 effect; K=10 keeps ≈ 2 pp without
-it. M5 is 2–6× less seed-stable than M3. Full write-up `docs/V13_5_RESULTS.md`.
+it. M5 is 2–6× less seed-stable than M3. Full write-up `docs/results/V13_5_RESULTS.md`.
 
 **Ansatz depth** — M1 −0.02 pp (p = 0.975), M2 −0.14 pp (p = 0.773). Null.
 

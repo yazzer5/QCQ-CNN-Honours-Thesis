@@ -416,7 +416,7 @@ folder, with an index at `results/analysis_index.html`.
 
 This is a distinct, more targeted set of predictions from the four-item list
 in §9 below — registered specifically before the 2,4 grid, using the 2,6
-results as context. Full text: `docs/PREREGISTRATION_2_4.md` /
+results as context. Full text: `docs/preregistrations/PREREGISTRATION_2_4.md` /
 `code/v9_fashion/PREREGISTRATION_2_4.md`.
 
 | # | Prediction | Outcome |

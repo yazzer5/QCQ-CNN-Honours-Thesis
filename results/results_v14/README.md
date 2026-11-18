@@ -15,8 +15,8 @@ as 200 × 500 / N; early stopping (patience 20) ended every run. 10 seeds (42–
 All 512 runs include per-image test predictions and `train_acc_at_best`. Job logs:
 `../job_logs/v14/` (53 smoke `v14s_*`/`v14r_*`, 459 grid `v14g*`, plus `patch_v14.log`,
 `verify_v14*.log`). Every log carries a `[V14] SPLIT` audit (per-class counts, image
-hashes, overlap). Code: `code/v14_lowdata/`. Pre-registration: `docs/PREREGISTRATION_v14.md`.
-Write-up: `docs/V14_RESULTS.md`.
+hashes, overlap). Code: `code/v14_lowdata/`. Pre-registration: `docs/preregistrations/PREREGISTRATION_v14.md`.
+Write-up: `docs/results/V14_RESULTS.md`.
 
 **Comparators not duplicated here:** N = 500 M2/M3 come from v13 (`results_v13_k*_w15`,
 on Gadi, not yet in this repo) and M5 from v13.5 (`../results_v135/k*_w15/`). The `file`

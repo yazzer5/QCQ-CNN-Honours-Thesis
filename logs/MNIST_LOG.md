@@ -196,7 +196,7 @@ the thesis spec.
 > the raw JSONs and job logs now confirm it directly (0/20 `FULL PROTOCOL`,
 > 20/20 `REDUCED-SCALE`). **The numbers below are unchanged and match the
 > raw JSONs exactly** — only the label changes. Full account:
-> `docs/AMENDMENT_2026-08-14_v10_reduced_scale.md`. Treat every finding in
+> `docs/process/AMENDMENT_2026-08-14_v10_reduced_scale.md`. Treat every finding in
 > this section as a feasibility result pending a locked-protocol confirmation
 > run, not as the final word on 10-class M2 vs M1.
 
@@ -207,12 +207,12 @@ comparison. Code v10 is v9 plus: a 3-observable QNN readout (`<Z0>`, `<Z1>`,
 re-pad for 10 classes (M1 1640 / M2 1646 / M3 1649 / M4 1643, spread 0.55% —
 **not** the binary 1604/1610/1600/1594), `--deterministic`, and
 `--save_predictions` for McNemar's test. Full changelog:
-`docs/CHANGELOG_v10.md`.
+`docs/process/CHANGELOG_v10.md`.
 
 **Loss function amendment, made before the grid ran:** the pre-registration
-(`docs/PREREGISTRATION_MNIST10.md`) specified BCE-on-one-hot retained for
+(`docs/preregistrations/PREREGISTRATION_MNIST10.md`) specified BCE-on-one-hot retained for
 continuity with v6–v9. A smoke test triggered the convergence-at-cap
-criterion described in `docs/AMENDMENT_2026-08-13_loss.md` — at 10 classes,
+criterion described in `docs/process/AMENDMENT_2026-08-13_loss.md` — at 10 classes,
 BCE drives 9 of 10 logits toward a strongly negative target every step, and
 that pressure falls asymmetrically on M1/M2's bounded QNN outputs. The grid
 switched to softmax cross-entropy before any full run was submitted. Disclose
@@ -259,7 +259,7 @@ a pattern when writing up methodology.
 
 ### Pre-registered predictions — scored
 
-Full scoring with commentary in `docs/PREREGISTRATION_MNIST10.md` §Outcome.
+Full scoring with commentary in `docs/preregistrations/PREREGISTRATION_MNIST10.md` §Outcome.
 Summary: of 5 predictions, 1 falsified outright (M2−M1 magnitude/significance),
 1 falsified on sign (M3−M4), 1 mostly held (accuracy range), 1 held (McNemar
 sign agreement, see below), 1 not yet evaluated (determinism check — see
@@ -308,7 +308,7 @@ grids (§5.7 note in `FMNIST_LOG.md`, where predictions weren't saved).
 
 ### Data provenance note
 
-This section, `docs/PREREGISTRATION_MNIST10.md`'s outcome, and
+This section, `docs/preregistrations/PREREGISTRATION_MNIST10.md`'s outcome, and
 `results/results_v10_mnist10/` were originally built (2026-08-14, earlier
 same day) from code, docs, and four summary figures — **not from raw
 `result_M*.json` files**, which were not included in that upload. Raw
@@ -317,7 +317,7 @@ added directly (`results/results_v10_mnist10/result_*.json`,
 `results/job_logs/v10_mnist10/`). Their per-seed test accuracies match the
 previously-used fallback constants exactly, to the digit. **The job logs
 also revealed the reduced-scale protocol issue — see the amendment banner at
-the top of §4b and `docs/AMENDMENT_2026-08-14_v10_reduced_scale.md`.**
+the top of §4b and `docs/process/AMENDMENT_2026-08-14_v10_reduced_scale.md`.**
 Determinism is confirmed enabled (`deterministic=True` printed in every job
 log); a live re-run to verify bit-exact agreement at fixed seed has not been
 done and remains open (prediction 5).
@@ -609,7 +609,7 @@ resolve the primary contrast more cheaply than more seeds would.
 **Decisions already made for the 10-class grid (v10), recorded for arm (b)
 and any re-run:** wider QNN readout (3 observables, zero extra circuit
 parameters) and a re-padded iso-parametric budget (M1 1640 / M2 1646 / M3
-1649 / M4 1643, spread 0.55%) — see §4b and `docs/CHANGELOG_v10.md`.
+1649 / M4 1643, spread 0.55%) — see §4b and `docs/process/CHANGELOG_v10.md`.
 
 **Caution for arm (b):** batch size 1 with 100 flat epochs is dramatically
 slower — let the smoke test measure it before committing. And dropout 0.5 plus
@@ -641,14 +641,14 @@ finding.
 
 > **Repo gap:** v11–v13 (and v15) are not yet written up in this log; v14 is §11. v13.5 uses
 > v12's class-count cells (K=3/4/5, two digit subsets each, plus K=10) and v13's
-> readout widths (w3/w6/w15). Full write-up: `docs/V13_5_RESULTS.md`.
+> readout widths (w3/w6/w15). Full write-up: `docs/results/V13_5_RESULTS.md`.
 
 **Why.** Supervisor request: every experiment from v12 to v15 must include **M5 = M3
 with the front-end not trained**. M2 − M1 (§4b) changes two things at once, because
 M1's frozen front-end is Henderson RandomLayers, not Circuit 4. M3 − M5 changes only
 whether the Circuit-4 front-end is trained, with a classical head.
 
-**Design (pre-registered, `docs/PREREGISTRATION_v13_5.md`).** M5 only, at all 13
+**Design (pre-registered, `docs/preregistrations/PREREGISTRATION_v13_5.md`).** M5 only, at all 13
 v12+v13 cells × 10 seeds = 130 runs, plus 1 M3 reproduction. M5 = `build_model("M3")`
 + front-end `requires_grad=False`: same init as M3, same params, same 30-epoch warmup.
 Primary: M3 − M5 (+TOST ±1) at every width; M5 − M4 (+TOST ±1) at w3. Holm within K.
@@ -690,7 +690,7 @@ Figures: `results/results_v135/analysis/plots_deep/` (D1–D8); lead with D2 and
 
 ## 11. v14: low data (sample efficiency), M1–M5 at w15 (2026-10-15 → 10-17)
 
-**Design (pre-registered, `docs/PREREGISTRATION_v14.md`).** MNIST K=5 (subsets A, B)
+**Design (pre-registered, `docs/preregistrations/PREREGISTRATION_v14.md`).** MNIST K=5 (subsets A, B)
 and K=10, training set N = 50 / 100 / 250 images per class, M1–M5 × 10 seeds, every
 head at readout width 15. N = 500: M1/M4 run new (never at w15), M2/M3 from v13 w15,
 M5 from v13.5 w15. Max-epoch cap 200 × 500 / N; patience 20 and 30-epoch warmup
@@ -729,19 +729,19 @@ correction to §8 text (job count, n_obs) logged in the pre-registration.
   v13.5. Without it, K=5 T falls to 0.4–0.8 pp; K=10 N=250 keeps +2.0 [0.8, 3.3].
 
 Figures: `results/results_v14/analysis/plots/` (lead with `contrasts_vs_n.png`) and
-`plots_deep/` (D1–D5; lead with D2, then D4). Write-up: `docs/V14_RESULTS.md`.
+`plots_deep/` (D1–D5; lead with D2, then D4). Write-up: `docs/results/V14_RESULTS.md`.
 ---
 
 ## 12. v15: IBM-calibrated noise on the quantum front-end (2026-10-17 → 10-18)
 
 > v15 reuses v13 (M2/M3, w15), v13.5 (M5, w15) and v14 (M1/M4, N=500, w15) as its
-> α = 0 cells. Full write-up: `docs/V15_RESULTS.md`.
+> α = 0 cells. Full write-up: `docs/results/V15_RESULTS.md`.
 
 **Why.** Supervisor brief: "V15 is noise analysis, so noisy input alpha from real IBM
 calibrated noise." The last condition in the thesis aims where a front-end advantage
 could appear.
 
-**Design (pre-registered, `docs/PREREGISTRATION_v15.md`).** Noise on the **front-end
+**Design (pre-registered, `docs/preregistrations/PREREGISTRATION_v15.md`).** Noise on the **front-end
 only** (the QNN head stays exact by design), from the ibm_brisbane calibration
 (FakeBrisbane snapshot 2025-02-26, hash-checked by every job). Each logical gate is
 charged its native IBM gates: RY → 2 SX, CRZ → 2 ECR, CNOT → 1 ECR. Each native gate gets

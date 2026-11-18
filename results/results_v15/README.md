@@ -27,7 +27,7 @@ Two arms come from one grid:
 
 Job logs: `../job_logs/v15/` (63 smoke `v15s_*`, 567 grid `v15g_*`, plus `patch_v15.log`
 and `verify_v15.log`). Code: `code/v15_noise/`. Pre-registration with amendment A1:
-`docs/PREREGISTRATION_v15.md`. Write-up: `docs/V15_RESULTS.md`. Its figure paths
+`docs/preregistrations/PREREGISTRATION_v15.md`. Write-up: `docs/results/V15_RESULTS.md`. Its figure paths
 `figures_v15/` and `figures_v15_deep/` are `analysis/plots/` and `analysis/plots_deep/` here.
 
 **Reproductions.** All 150 α = 0 runs equal the stored runs bit-exactly (test_acc,

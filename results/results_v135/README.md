@@ -15,7 +15,7 @@ the front-end's 6 parameters are never trained. M3 − M5 isolates front-end tra
 All 130 M5 runs include per-image test predictions. Job logs: `../job_logs/v135/`
 (14 smoke `v135s_*`, 117 grid `v135_*`, plus setup `patch_v135.log` / `verify_v135*.log`).
 Code: `code/v13_5_m5/`. Pre-registration with amendments A1, A2 and defect D1:
-`docs/PREREGISTRATION_v13_5.md`. Write-up: `docs/V13_5_RESULTS.md`.
+`docs/preregistrations/PREREGISTRATION_v13_5.md`. Write-up: `docs/results/V13_5_RESULTS.md`.
 
 **Comparators are not duplicated here.** M1–M4 come from v12 (K=3/4/5, w3), v10 +
 v13 top-up (K=10, w3) and v13 (K=5/10, w6/w15 M2/M3). Those grids are not yet in this

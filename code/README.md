@@ -25,7 +25,7 @@ reformulated as batched torch tensor algebra — **214× at batch 32, 803× at b
 Fashion-MNIST 0,6. Two silent launch bugs fixed: `qsub -v CLASSES=0,6` parsed as
 `CLASSES=0` plus a stray variable (PBS's `-v` is itself comma-separated), and the
 time-budget continuation branch silently reverted to MNIST. Added offline data
-handling for compute nodes with no internet. See `docs/CHANGELOG_v7.md`.
+handling for compute nodes with no internet. See `docs/process/CHANGELOG_v7.md`.
 
 ## v8_fashion
 Fashion-MNIST 2,6. Two changes from v7: qiskit imports moved behind a lazy
@@ -34,7 +34,7 @@ Fashion-MNIST 2,6. Two changes from v7: qiskit imports moved behind a lazy
 what job 175978087 hit — and the generalisation gap is now measured as
 `train_acc − test_acc` on the same restored best-validation checkpoint
 (`gap_at_best`), fixing the different-models bug described in
-`FMNIST_LOG.md` §6.1. See `docs/CHANGELOG_v8.md` and
+`FMNIST_LOG.md` §6.1. See `docs/process/CHANGELOG_v8.md` and
 `code/v8_fashion/PREREGISTRATION_2_6.md`.
 
 ## v9_fashion
@@ -48,7 +48,7 @@ See `code/v9_fashion/PREREGISTRATION_2_4.md`.
 10-class MNIST grid — **reduced-scale/feasibility run, not the locked full
 protocol** (`N_TEST=2000, MAX_EPOCHS=200` vs the binary grids'
 `N_TEST=1000, MAX_EPOCHS=100`; every job log prints `REDUCED-SCALE /
-FEASIBILITY RUN` explicitly — see `docs/AMENDMENT_2026-08-14_v10_reduced_scale.md`).
+FEASIBILITY RUN` explicitly — see `docs/process/AMENDMENT_2026-08-14_v10_reduced_scale.md`).
 v9 plus: a 3-observable QNN readout (`<Z0>`, `<Z1>`, `<Z0Z1>`, same circuit,
 zero extra circuit parameters), an iso-parametric re-pad for 10 classes (M1
 1640 / M2 1646 / M3 1649 / M4 1643, spread 0.55% — **not** the binary
@@ -57,8 +57,8 @@ and `--save_predictions` for McNemar's test (now computed — pooled McNemar
 agrees in sign with the accuracy-mean test, but 4/5 individual seeds are
 independently significant with the sign flipping seed to seed). Loss
 function amended from BCE to cross-entropy before the grid ran
-(`docs/AMENDMENT_2026-08-13_loss.md`). Raw per-run result JSONs and job logs
-are now in the repo. See `docs/CHANGELOG_v10.md` and `logs/MNIST_LOG.md` §4b.
+(`docs/process/AMENDMENT_2026-08-13_loss.md`). Raw per-run result JSONs and job logs
+are now in the repo. See `docs/process/CHANGELOG_v10.md` and `logs/MNIST_LOG.md` §4b.
 
 ## v1_v4_replication and v3_v4_first_grid
 v1–v2: the local pilot and full-scale Gadi replication of Long et al.
@@ -75,11 +75,11 @@ in `env/`.
 
 ## v12_class_count
 Class count K = 3, 4, 5 on two digit subsets, ten seeds (seed fix included). Applied
-on Gadi by `setup_v12.sh`; see `docs/PREREGISTRATION_v12.md`.
+on Gadi by `setup_v12.sh`; see `docs/preregistrations/PREREGISTRATION_v12.md`.
 
 ## v13_readout_width
 QNN readout width w = 3, 6, 15 (`patch_v13_readout.py`); see
-`docs/PREREGISTRATION_v13.md`.
+`docs/preregistrations/PREREGISTRATION_v13.md`.
 
 ## v13_5_m5
 v13.5: adds **M5 = M3 with the quantum front-end frozen** to the v13 code
@@ -90,7 +90,7 @@ to the warmup rule (`needs_warmup`, amendment A1) and logs the resolved warmup p
 Every M5 run prints a bit-exact front-end check at exit. `scripts/verify_v135_m5.py`
 proves M1–M4 bit-identical to the pre-patch file at all 8 (K, width) cells. PBS:
 smoke → gate (`check_v135.sh`) → grid → gate; 1 h walltime (A2); the `MODEL` clash fixed
-as `GRID_MODEL` (defect D1). See `docs/PREREGISTRATION_v13_5.md`.
+as `GRID_MODEL` (defect D1). See `docs/preregistrations/PREREGISTRATION_v13_5.md`.
 
 ## v14_lowdata
 v14: **low data** (N = 50/100/250 train images per class; 500 reused), M1–M5 at readout
@@ -106,26 +106,32 @@ which also proves all models at a cell saw identical images) → grid (459, resu
 gate. `collect_v14.py` / `plot_v14.py` / `deep_v14.py` for contrasts and figures.
 Repo copies of `gate_v14.py` / `collect_v14.py` use Python-3.6-compatible `subprocess`
 arguments (added after the smoke, no logic change); `setup_v14.sh` runs verify unbuffered.
-See `docs/PREREGISTRATION_v14.md`.
+See `docs/preregistrations/PREREGISTRATION_v14.md`.
 ## v15_noise
 v15: IBM-calibrated noise on the front end only (FakeBrisbane snapshot 2025-02-26),
 each logical gate charged its native gates, scaled by α. Noise model verified against
-Qiskit Aer. See `docs/PREREGISTRATION_v15.md` and `docs/V15_RESULTS.md`.
+Qiskit Aer. See `docs/preregistrations/PREREGISTRATION_v15.md` and `docs/results/V15_RESULTS.md`.
 
 ## v15_5_input_noise
 v15.5: clipped Gaussian pixel noise added to the input image, M1–M5, trained clean
 (deployed arm) or on noise (matched arm), every model cross-evaluated over σ. See
-`docs/PREREGISTRATION_v15_5.md` and `docs/V15_5_RESULTS.md`.
+`docs/preregistrations/PREREGISTRATION_v15_5.md` and `docs/results/V15_5_RESULTS.md`.
 
 ## v16a_closed_form_head, v16b_redesigned_head, v16bx_redesign_controls
 v16a replaces the QNN head with its exact classical closed form (`closed_form_zz_v16.py`)
 and dumps the head input z. v16b tests a redesigned head (`bfr_head_v16b.py`); v16b-ext
 adds the controls (`bfr_ext_v16b.py`). Each folder carries the patched trainer it ran
-with. See the matching `docs/PREREGISTRATION_*` and each folder's README.
+with. See the matching `docs/preregistrations/PREREGISTRATION_v16*.md`, `docs/results/V16*_RESULTS.md` and each folder's README.
+
+## Not yet in the repository: v15.6, v15.7, v15.8
+The noise-geometry (v15.6), training-dynamics (v15.7) and classical cos(πx) control (v15.8)
+packages ran on Gadi from the v15.5 trainer. Their pre-registrations and results are in
+`docs/`; the code and raw results will be added under `code/v15_6_noise_geometry/`,
+`code/v15_7_bubble_tracking/`, `code/v15_8_cos_control/` and the matching `results/` folders.
 
 ## diagnostics/v10_loss_smoke
 The one-seed M2 smoke test (BCE vs cross-entropy) behind the loss amendment
-(`docs/AMENDMENT_2026-08-13_loss.md`). Results in `results/results_v10_loss_smoke/`.
+(`docs/process/AMENDMENT_2026-08-13_loss.md`). Results in `results/results_v10_loss_smoke/`.
 
 ## diagnostics/smoke10_mnist
 10-class MNIST across all four models, at two QNN readout widths. Established
@@ -135,7 +141,7 @@ that the back-end is measurement-limited. **Not iso-parametric** — read
 ## diagnostics/reps_ablation
 `RealAmplitudes` depth 1 vs 2, resolving a contradiction between Long et al.'s
 paper (6 params) and their published code (4 params). Prediction registered in
-`docs/ABLATION_README.md` **before** the runs. Result: null.
+`docs/preregistrations/ABLATION_README.md` **before** the runs. Result: null.
 
 ## Environment
 
